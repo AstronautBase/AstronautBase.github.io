@@ -19,28 +19,23 @@
   <meta name="author" content="Astronaut">
   <meta name="keywords" content="">
   
-    <meta name="description" content="网络应用原理 网络应用体系结构 客户-服务器体系结构 CS client-server achitecture  有一个总是打开的主机，称为服务器，它服务于来自许多其它称为客户的主机的请求。 客户相互不直接通信 具有固定的、周知的地址，称为 IP 地址；客户总是能够通过向该服务器的 IP 地址发送分组来与其联系。 例：Web&#x2F;FTP&#x2F;Telnet&#x2F;电子邮件  P2P 体系结构 P2P archit">
+    <meta name="description" content="Docker 安装 (wsl2-Ubuntu20.04) 安装 docker 1234567891011121314151617181920212223242526# 更新软件包列表，确保我们获得可用的软件包的最新信息sudo apt update# 安装必要的软件包：ca-certificates（用于验证SSL证书），curl（用于下载文件），gnupg（用于加密和解密）sudo apt in">
 <meta property="og:type" content="article">
-<meta property="og:title" content="互联网计算-02应用层">
-<meta property="og:url" content="https://astronautbase.github.io/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-02%E5%BA%94%E7%94%A8%E5%B1%82/index.html">
+<meta property="og:title" content="Docker安装">
+<meta property="og:url" content="https://astronautbase.github.io/2025/03/12/Docker%E5%AE%89%E8%A3%85/index.html">
 <meta property="og:site_name" content="Astronaut&#39;s Blog">
-<meta property="og:description" content="网络应用原理 网络应用体系结构 客户-服务器体系结构 CS client-server achitecture  有一个总是打开的主机，称为服务器，它服务于来自许多其它称为客户的主机的请求。 客户相互不直接通信 具有固定的、周知的地址，称为 IP 地址；客户总是能够通过向该服务器的 IP 地址发送分组来与其联系。 例：Web&#x2F;FTP&#x2F;Telnet&#x2F;电子邮件  P2P 体系结构 P2P archit">
+<meta property="og:description" content="Docker 安装 (wsl2-Ubuntu20.04) 安装 docker 1234567891011121314151617181920212223242526# 更新软件包列表，确保我们获得可用的软件包的最新信息sudo apt update# 安装必要的软件包：ca-certificates（用于验证SSL证书），curl（用于下载文件），gnupg（用于加密和解密）sudo apt in">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://astronautbase.github.io/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-02%E5%BA%94%E7%94%A8%E5%B1%82/2025022587.png">
-<meta property="og:image" content="https://astronautbase.github.io/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-02%E5%BA%94%E7%94%A8%E5%B1%82/2025022532.png">
-<meta property="og:image" content="https://astronautbase.github.io/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-02%E5%BA%94%E7%94%A8%E5%B1%82/2025030419.png">
-<meta property="og:image" content="https://astronautbase.github.io/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-02%E5%BA%94%E7%94%A8%E5%B1%82/2025030432.png">
-<meta property="og:image" content="https://astronautbase.github.io/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-02%E5%BA%94%E7%94%A8%E5%B1%82/2025030477.png">
-<meta property="article:published_time" content="2025-02-25T12:52:27.000Z">
-<meta property="article:modified_time" content="2025-03-12T10:55:48.328Z">
+<meta property="article:published_time" content="2025-03-12T11:46:06.000Z">
+<meta property="article:modified_time" content="2025-03-12T11:49:40.511Z">
 <meta property="article:author" content="Astronaut">
-<meta property="article:tag" content="计算机基础">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="linux">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://astronautbase.github.io/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-02%E5%BA%94%E7%94%A8%E5%B1%82/2025022587.png">
   
   
   
-  <title>互联网计算-02应用层 - Astronaut&#39;s Blog</title>
+  <title>Docker安装 - Astronaut&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -208,7 +203,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="互联网计算-02应用层"></span>
+            <span id="subtitle" data-typed-text="Docker安装"></span>
           
         </div>
 
@@ -219,8 +214,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-02-25 20:52" pubdate>
-          2025年2月25日 晚上
+        <time datetime="2025-03-12 19:46" pubdate>
+          2025年3月12日 晚上
         </time>
       </span>
     
@@ -231,7 +226,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.1k 字
+          702 字
         
       </span>
     
@@ -242,7 +237,7 @@
         
         
         
-          18 分钟
+          6 分钟
         
       </span>
     
@@ -279,189 +274,18 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">互联网计算-02应用层</h1>
+            <h1 id="seo-header">Docker安装</h1>
             
             
               <div class="markdown-body">
                 
-                <h2 id="网络应用原理">网络应用原理</h2>
-<h3 id="网络应用体系结构">网络应用体系结构</h3>
-<h4 id="客户-服务器体系结构-CS-client-server-achitecture">客户-服务器体系结构 CS client-server achitecture</h4>
-<ul>
-<li>有一个总是打开的主机，称为服务器，它服务于来自许多其它称为客户的主机的请求。</li>
-<li>客户相互不直接通信</li>
-<li>具有固定的、周知的地址，称为 <strong>IP 地址</strong>；客户总是能够通过向该服务器的 IP 地址发送分组来与其联系。</li>
-<li>例：Web/FTP/Telnet/电子邮件</li>
-</ul>
-<h4 id="P2P-体系结构-P2P-architecture">P2P 体系结构 P2P architecture</h4>
-<ul>
-<li>对位于数据中心的专用服务器有最小的（或者没有）依赖。</li>
-<li>应用程序在间断连接的主机对之间直接通信，这些主机称为对等方。</li>
-<li>例：文件共享应用 BitTorrent</li>
-<li><strong>自扩展性</strong> self-scalability：尽管每个对等方都由于请求文件产生工作负载，但每个对等方通过向其它对等方文件也为系统增加服务能力。</li>
-<li>成本效率：不需要庞大的服务器基础设施和服务带宽</li>
-</ul>
-<p>例：及时通讯</p>
-<ul>
-<li>CS: User registers its IP address with central server when it comes online</li>
-<li>P2P: User contacts central server to find IP address of parties</li>
-</ul>
-<h3 id="进程通信">进程通信</h3>
-<p><strong>进程：</strong> 进行通信的实际上是进程 process 而不是程序，一个进程可以被认为是运行在端系统中的一个程序。</p>
-<ul>
-<li>当多个进程运行在相同的端系统上时，它们使用进程间通信机制相互通信。</li>
-<li>在两个不同端系统上的进程，通过跨越计算机网络交换报文 message 而相互通信</li>
-</ul>
-<p><strong>套接字 socket：</strong> 进程通过一个称为套接字的软件结构向网络发送报文和从网络接收报文。由于套接字也是建立网络应用程序的可编程接口，也被称为应用编程接口 Application Programming Interface API</p>
-<h2 id="应用层协议">应用层协议</h2>
-<h3 id="Web-和-HTTP">Web 和 HTTP</h3>
-<h4 id="HTTP-概述">HTTP 概述</h4>
-<p><strong>HTTP</strong> (HyperText Transfer Protocol 超文本传输协议)：Web 的应用层协议，是 Web 的核心。<br>
-URL 格式：</p>
-<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ruby">&lt;protocol&gt;<span class="hljs-symbol">://&lt;host&gt;</span><span class="hljs-symbol">:&lt;port&gt;/&lt;path&gt;<span class="hljs-string">?q</span>uery_string</span><br></code></pre></td></tr></table></figure>
-<ul>
-<li>protocol: method for transmission or interpretation of the object</li>
-<li>host: DNS name or IP address of the host where object resides</li>
-<li>path: pathname of the file that contains the object</li>
-<li>query_string: name/value pairs sent to app on the server</li>
-</ul>
-<p>HTTP 连接过程 —— 三次握手：</p>
-<ul>
-<li>客户向服务器发送一个小 TCP 报文段</li>
-<li>服务器用一个小 TCP 报文段做出确认和响应</li>
-<li>客户向服务器返回确认</li>
-</ul>
-<h4 id="cookie">cookie</h4>
-<p><strong>cookie:</strong> HTTP 服务器是无状态的，而 cookie 允许站点对用户进行跟踪<br>
-4 个组件：</p>
-<ul>
-<li>在 HTTP 响应报文中的一个 cookie 首部行</li>
-<li>在 HTTP 请求报文中的一个 cookie 首部行</li>
-<li>在用户端系统中保留的一个 cookie 文件，并由用户的浏览器进行管理</li>
-<li>位于 Web 站点的一个后端数据库</li>
-</ul>
-<h4 id="持续-非持续连接">持续/非持续连接</h4>
-<p><strong>RTT:</strong> 往返时间 Round-Trip Time 指一个短分组从客户到服务器然后再返回客户所花费的时间。包括分组传播时延、分组在中间路由器和交换机上的排队时延以及分组处理时延</p>
-<p><em>非持续连接</em>：</p>
-<ul>
-<li>必须为每一个请求的对象建立和维护一个全新的连接。对于每个这样的连接，在客户和服务器中都要分配 TCP 的缓冲区和保持 TCP 变量，给服务器带来严重负担。</li>
-<li>每一个对象经受两倍 RTT 的交付时延，即一个 RTT 用于创建 TCP，另一个 RTT 用于请求和接收一个对象。</li>
-</ul>
-<p><em>持续连接</em>：服务器在发送响应后保持该 TCP 连接打开。在相同的客户与服务器之间，后续的请求和响应报文能够通过相同的连接进行传送。</p>
-<h4 id="Web-缓存">Web 缓存</h4>
-<p>Web 缓存器 - 代理服务器 proxy server：能够代表初始 Web 服务器来满足 HTTP 请求的网络实体。有自己的磁盘存储空间，并在存储空间中保存最近请求过的对象的副本。</p>
-<p><strong>条件 GET</strong> conditional GET</p>
-<p>条件 GET 请求报文：HTTP 请求报文使用 GET 方法，并且请求报文中包含一个&quot;If-modified-since: &quot;首部行</p>
-<h3 id="SMTP">SMTP</h3>
-<p>用于从发送方的邮件服务器发送报文到接收方的邮件服务器<br>
-传送方式：</p>
-<ol>
-<li>客户 SMTP（运行在发送邮件服务器主机上）在 25 号端口建立一个到服务器 SMTP（运行在接收邮件服务器主机上）的 TCP 连接。</li>
-<li>如果服务器没有开机，客户会在稍后继续尝试连接。一旦连接建立，服务器和客户执行某些应用层的握手。</li>
-<li>在 SMTP 握手的阶段，SMTP 客户只是发送方的邮件地址（产生报文的人）和接收方的邮件地址。一旦该 SMTP 客户和服务器彼此介绍后，客户发送该报文。</li>
-<li>SMTP 能依赖 TCP 提供可靠数据传输无差错地将邮件投递到接收服务器。该客户如果有另外的报文要发送到该服务器，就在该相同的 TCP 连接上重复这种处理；否则它指示 TCP 关闭连接。</li>
-</ol>
-<h3 id="DNS-Domain-Name-Service">DNS Domain Name Service</h3>
-<h4 id="基本概念">基本概念</h4>
-<p>识别主机的两种方式:</p>
-<ul>
-<li>主机名</li>
-<li>IP 地址</li>
-</ul>
-<p>——主机名到 IP 地址转换的目录服务：DNS 的主要任务</p>
-<p>DNS：</p>
-<ul>
-<li>一个由分层的 DNS 服务器实现的分布式数据库</li>
-<li>一个使得主机能够查询分布式数据库的应用层协议</li>
-</ul>
-<p>目标：</p>
-<ul>
-<li>独特性：没有命名冲突</li>
-<li>可扩展性 Many names and frequent updates (secondary)</li>
-<li>分布式、自主管理
-<ul>
-<li>Ability to update my own (machine’s) names</li>
-<li>Don’t have to track everybody’s updates</li>
-</ul>
-</li>
-<li>Highly available</li>
-<li>Lookups are fast</li>
-<li>Perfect consistency is a non-goal</li>
-</ul>
-<p>How?</p>
-<ul>
-<li>Partition the namespace</li>
-<li>Distribute administration of each partition 分配每个分区的管理
-<ul>
-<li>Autonomy to update my own (machine’s) names</li>
-<li>Don’t have to track everybody’s updates</li>
-</ul>
-</li>
-<li>Distribute name resolution for each partition 为每个分区分配名称解析</li>
-</ul>
-<h4 id="层次结构">层次结构</h4>
-<p>核心思想：层次结构 <strong>Hierarchy</strong><br>
-Three intertwined hierarchies</p>
-<ul>
-<li>Hierarchical namespace</li>
-<li>Hierarchical administered</li>
-<li>(Distributed) hierarchy of servers</li>
-</ul>
-<p><img src="2025022587.png" srcset="/img/loading.gif" lazyload alt=""><br>
-<img src="2025022532.png" srcset="/img/loading.gif" lazyload alt=""></p>
-<p>DNS 服务器的层次结构：</p>
-<ul>
-<li>根服务器：13 root name “serves” worldwide，还有超多 1000 台的副本。根服务器提供 TLD 服务器的 IP 地址</li>
-<li>顶级域 (TLD Top-Level Domain) DNS 服务器：对每个顶级域和所有国家的顶级域都有 TLD 服务器。TLD 服务器提供权威 DNS 服务器的 IP 地址。</li>
-<li>权威服务器：在因特网上具有公共可访问主机（如 Web 服务器和邮件服务器）的每个组织机构必须提供公共可访问的 DNS 记录，这些记录将这些主机的名字映射为 IP 地址。一个组织的权威 DNS 服务器收藏了这些 DNS 记录。</li>
-</ul>
-<p>例：使用户的主机能够将一个 HTTP 请求报文发送到 Web 服务器，该用户主机需获得对应的 IP 地址：</p>
-<ol>
-<li>同一台用户主机上运行着 DNS 应用的客户端</li>
-<li>浏览器从上述 URL 中抽取出主机名 <a target="_blank" rel="noopener" href="http://www.someschool.edu">www.someschool.edu</a> ，并将主机名传给 DNS 应用的客户端。</li>
-<li>DNS 客户向 DNS 服务器发送一个包含主机名的请求。</li>
-<li>DNS 客户最终会收到一份回答报文，其中含有对应于该主机名的 IP 地址。</li>
-<li>一旦浏览器接收到来自 DNS 的该 IP 地址，它就向位于该 IP 地址 80 端口的</li>
-</ol>
-<p>HTTP 服务器进程发起一个 TCP 连接。</p>
-<p><strong>本地 DNS 服务器</strong>：每个 ISP 都有一台本地 DNS 服务器，当主机与某个 ISP 连接时，该 ISP 提供一台主机的 IP 地址，该主机具有一台或多台其本地 DNS 服务器的 IP 地址。</p>
-<p><img src="2025030419.png" srcset="/img/loading.gif" lazyload alt=""></p>
-<p><strong>递归查询</strong> recursive query：从请求主机到本地 DNS 服务器的查询。其余的查询都是迭代的。</p>
-<h4 id="DNS-缓存">DNS 缓存</h4>
-<ul>
-<li>为了改善时延性能并减少在因特网上到处传输的 DNS 报文数量</li>
-<li>原理：在一个请求链中，当某 DNS 服务器接收一个 DNS 回答时（例如，包含某主机名到 IP 地址的映射），它就能将映射缓存在本地存储器中。</li>
-</ul>
-<h4 id="DNS-记录">DNS 记录</h4>
-<p><img src="2025030432.png" srcset="/img/loading.gif" lazyload alt=""></p>
-<h3 id="FTP-File-Transfer-Protocol">FTP File Transfer Protocol</h3>
-<ul>
-<li>在运输层使用 TCP</li>
-<li>一般端口号为 21/20</li>
-<li>在本地和主机之间传输文件。采用 CS 模型。</li>
-<li>采用异构的操作系统和文件系统</li>
-</ul>
-<p>控制连接：让客户和服务器可以建立连接（比如身份认证）</p>
-<p>数据连接：单独创建一个连接，进行数据的传输。</p>
-<h3 id="CDNs-Content-Distribution-Networks">CDNs Content Distribution Networks</h3>
-<p>挑战：</p>
-<ul>
-<li>实时从单个源服务器流式传输大文件（如视频）</li>
-<li>保护源服务器免受 DDOS 攻击<br>
-解决方法：</li>
-<li>在互联网上的数百台服务器上复制内容</li>
-<li>CDN 分发节点协调内容分发</li>
-<li>将内容放在用户附近</li>
-</ul>
-<h4 id="内容复制">内容复制</h4>
-<ul>
-<li>内容提供商（源服务器）是 CDN 客户</li>
-<li>CDN 在 CDN 服务器中复制客户的内容</li>
-<li>当提供商更新内容时，CDN 会更新其服务器</li>
-<li>使用权威 DNS 服务器重定向请求</li>
-</ul>
-<h4 id="CDN-操作">CDN 操作</h4>
-<p><img src="2025030477.png" srcset="/img/loading.gif" lazyload alt=""></p>
+                <h2 id="Docker-安装-wsl2-Ubuntu20-04">Docker 安装 (wsl2-Ubuntu20.04)</h2>
+<h3 id="安装-docker">安装 docker</h3>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-comment"># 更新软件包列表，确保我们获得可用的软件包的最新信息</span><br>sudo apt update<br><br><span class="hljs-comment"># 安装必要的软件包：ca-certificates（用于验证SSL证书），curl（用于下载文件），gnupg（用于加密和解密）</span><br>sudo apt install <span class="hljs-literal">-y</span> ca<span class="hljs-literal">-certificates</span> <span class="hljs-built_in">curl</span> gnupg<br><br><span class="hljs-comment"># 下载阿里云的GPG证书并将其添加到系统的密钥管理器中，以便后续验证软件包的来源</span><br><span class="hljs-built_in">curl</span> <span class="hljs-literal">-fsSL</span> https://mirrors.aliyun.com/docker<span class="hljs-literal">-ce</span>/linux/ubuntu/gpg | sudo apt<span class="hljs-literal">-key</span> add<br><br><span class="hljs-comment"># 进入指定目录，这里是用来存储APT源列表的目录</span><br><span class="hljs-built_in">cd</span> /etc/apt/sources.list.d<br><br><span class="hljs-comment"># 创建一个名为docker.list的文件，用于存放Docker的阿里云镜像源</span><br>sudo touch docker.list<br><br><span class="hljs-comment"># 修改docker.list文件的权限，使所有用户都可以读写</span><br>sudo chmod <span class="hljs-number">666</span> docker.list<br><br><span class="hljs-comment"># 将阿里云的Docker镜像源信息写入docker.list文件</span><br>sudo <span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu <span class="hljs-variable">$</span>(lsb_release -cs) stable&quot;</span> &gt; docker.list<br><br><span class="hljs-comment"># 更新软件包列表以包含新添加的镜像源并升级已安装的软件包</span><br>sudo apt<span class="hljs-literal">-get</span> update &amp;&amp; sudo apt<span class="hljs-literal">-get</span> upgrade<br><br><span class="hljs-comment"># 安装Docker及其相关组件，包括Docker引擎、命令行工具、容器运行时、Docker构建插件和Docker Compose插件</span><br>sudo apt install <span class="hljs-literal">-y</span> docker<span class="hljs-literal">-ce</span> docker<span class="hljs-literal">-ce-cli</span> containerd.io docker<span class="hljs-literal">-buildx-plugin</span> docker<span class="hljs-literal">-compose-plugin</span><br></code></pre></td></tr></table></figure>
+<h3 id="配置镜像源-NVIDIA-容器包工具">配置镜像源 NVIDIA 容器包工具</h3>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-comment"># 将当前用户添加到docker组，以便可以在不使用sudo的情况下运行docker命令</span><br>sudo usermod <span class="hljs-literal">-aG</span> docker <span class="hljs-variable">$USER</span><br><br><span class="hljs-comment"># 立即更新当前shell的组信息，或者可以注销后重新登录</span><br>newgrp docker<br><br><span class="hljs-comment"># 安装NVIDIA容器工具包的步骤</span><br><span class="hljs-comment"># 添加NVIDIA Docker的GPG密钥</span><br><span class="hljs-built_in">curl</span> <span class="hljs-literal">-s</span> <span class="hljs-literal">-L</span> https://nvidia.github.io/nvidia<span class="hljs-literal">-docker</span>/gpgkey | sudo apt<span class="hljs-literal">-key</span> add -<br><br><span class="hljs-comment"># 获取当前操作系统的ID和版本信息</span><br>distribution=<span class="hljs-variable">$</span>(. /etc/os<span class="hljs-literal">-release</span>;<span class="hljs-built_in">echo</span> <span class="hljs-variable">$ID</span><span class="hljs-variable">$VERSION_ID</span>)<br><br><span class="hljs-comment"># 添加NVIDIA Docker的APT源</span><br><span class="hljs-built_in">curl</span> <span class="hljs-literal">-s</span> <span class="hljs-literal">-L</span> https://nvidia.github.io/nvidia<span class="hljs-literal">-docker</span>/<span class="hljs-variable">$distribution</span>/nvidia<span class="hljs-literal">-docker</span>.list | sudo <span class="hljs-built_in">tee</span> /etc/apt/sources.list.d/nvidia<span class="hljs-literal">-docker</span>.list<br><br><span class="hljs-comment"># 添加CUDA的GPG公钥</span><br><span class="hljs-comment"># ！此处将com改为cn，2204改为2004</span><br>sudo apt<span class="hljs-literal">-key</span> adv <span class="hljs-literal">--fetch-keys</span> https://developer.download.nvidia.cn/compute/cuda/repos/ubuntu2004/x86_64/<span class="hljs-number">7</span>fa2af80.pub<br><br><span class="hljs-comment"># ！显示缺少某个公钥 单独获取</span><br>sudo apt<span class="hljs-literal">-key</span> adv <span class="hljs-literal">--keyserver</span> keyserver.ubuntu.com <span class="hljs-literal">--recv-keys</span> A4B469963BF863CC<br><br><span class="hljs-comment"># 添加CUDA的APT源</span><br>sudo <span class="hljs-built_in">add-apt</span><span class="hljs-literal">-repository</span> <span class="hljs-string">&quot;deb https://developer.download.nvidia.cn/compute/cuda/repos/ubuntu2004/x86_64/ /&quot;</span><br><br><span class="hljs-comment"># 更新APT包索引</span><br>sudo apt update<br><br><span class="hljs-comment"># 安装NVIDIA容器工具包</span><br>sudo apt install <span class="hljs-literal">-y</span> nvidia<span class="hljs-literal">-container-toolkit</span><br><br><span class="hljs-comment"># 重启Docker服务，以使NVIDIA容器工具包生效</span><br>sudo systemctl restart docker<br><br><span class="hljs-comment"># 配置Docker镜像源</span><br><span class="hljs-comment"># 创建Docker的配置目录（如果不存在）</span><br>sudo mkdir <span class="hljs-literal">-p</span> /etc/docker<br><br><span class="hljs-comment"># 创建或覆盖daemon.json文件，配置Docker的镜像源和默认运行时</span><br>sudo <span class="hljs-built_in">tee</span> /etc/docker/daemon.json &lt;&lt;-<span class="hljs-string">&#x27;EOF&#x27;</span><br>&#123;<br>    <span class="hljs-string">&quot;registry-mirrors&quot;</span>: [<br>        <span class="hljs-string">&quot;https://docker.1ms.run&quot;</span>,<br>        <span class="hljs-string">&quot;https://docker.xuanyuan.me&quot;</span>,<br>        <span class="hljs-string">&quot;https://docker.nju.edu.cn&quot;</span>,<br>        <span class="hljs-string">&quot;https://do.nark.eu.org&quot;</span>,<br>        <span class="hljs-string">&quot;https://dc.j8.work&quot;</span>,<br>        <span class="hljs-string">&quot;https://docker.m.daocloud.io&quot;</span>,<br>        <span class="hljs-string">&quot;https://dockerproxy.com&quot;</span>,<br>        <span class="hljs-string">&quot;https://docker.mirrors.ustc.edu.cn&quot;</span><br>    ],<br>    <span class="hljs-string">&quot;default-runtime&quot;</span>: <span class="hljs-string">&quot;nvidia&quot;</span>,<br>    <span class="hljs-string">&quot;runtimes&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;nvidia&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;path&quot;</span>: <span class="hljs-string">&quot;nvidia-container-runtime&quot;</span>,<br>        <span class="hljs-string">&quot;runtimeArgs&quot;</span>: []<br>        &#125;<br>    &#125;<br>&#125;<br>EOF<br><br><span class="hljs-comment"># 重新加载systemd管理的配置</span><br>sudo systemctl daemon<span class="hljs-literal">-reload</span><br><br><span class="hljs-comment"># 再次重启Docker服务，以应用新的配置</span><br>sudo systemctl restart docker<br></code></pre></td></tr></table></figure>
+<h3 id="验证安装">验证安装</h3>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs powershell">docker run hello<span class="hljs-literal">-world</span><br></code></pre></td></tr></table></figure>
 
                 
               </div>
@@ -480,7 +304,7 @@ Three intertwined hierarchies</p>
     
       <span class="category-chain">
         
-  <a href="/categories/2025%E6%98%A5-%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97/" class="category-chain-item">2025春-互联网计算</a>
+  <a href="/categories/Docker/" class="category-chain-item">Docker</a>
   
   
 
@@ -495,7 +319,9 @@ Three intertwined hierarchies</p>
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/" class="print-no-link">#计算机基础</a>
+        <a href="/tags/docker/" class="print-no-link">#docker</a>
+      
+        <a href="/tags/linux/" class="print-no-link">#linux</a>
       
     </div>
   
@@ -507,8 +333,8 @@ Three intertwined hierarchies</p>
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>互联网计算-02应用层</div>
-      <div>https://astronautbase.github.io/2025/02/25/互联网计算-02应用层/</div>
+      <div>Docker安装</div>
+      <div>https://astronautbase.github.io/2025/03/12/Docker安装/</div>
     </div>
     <div class="license-meta">
       
@@ -520,7 +346,7 @@ Three intertwined hierarchies</p>
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2025年2月25日</div>
+          <div>2025年3月12日</div>
         </div>
       
       
@@ -552,9 +378,9 @@ Three intertwined hierarchies</p>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/03/12/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-03%E8%BF%90%E8%BE%93%E5%B1%82/" title="互联网计算-03运输层">
+                      <a href="/2025/03/12/Docker%E5%AE%B9%E5%99%A8%E9%85%8D%E7%BD%AE/" title="Docker容器配置">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">互联网计算-03运输层</span>
+                        <span class="hidden-mobile">Docker容器配置</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -562,8 +388,8 @@ Three intertwined hierarchies</p>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/02/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-01%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%92%8C%E5%9B%A0%E7%89%B9%E7%BD%91/" title="互联网计算-01计算机网络和因特网">
-                        <span class="hidden-mobile">互联网计算-01计算机网络和因特网</span>
+                      <a href="/2025/03/12/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-2-2%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E5%9F%BA%E6%9C%AC%E8%BF%90%E7%AE%97/" title="数据管理基础-2.2关系代数基本运算">
+                        <span class="hidden-mobile">数据管理基础-2.2关系代数基本运算</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
