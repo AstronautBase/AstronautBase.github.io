@@ -1,0 +1,815 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="[!tip]+ 考核 作业 10% + 上机 25% + 项目 15% + 期末 50%  预备知识 函数的副作用 指在函数执行过程中，除了返回值之外，对外部状态或环境产生的影响。这些影响可能包括：  修改全局变量：函数可能会改变全局作用域中的变量值。 修改参数：如果参数是可变对象（如列表或字典），函数可能会直接修改这些对象。 输入&#x2F;输出操作：函数可能会进行文件读写、打印输出等操作。 抛出异常：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++高级程序设计-0-Introduction">
+<meta property="og:url" content="https://astronautbase.github.io/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-0-Introduction/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="[!tip]+ 考核 作业 10% + 上机 25% + 项目 15% + 期末 50%  预备知识 函数的副作用 指在函数执行过程中，除了返回值之外，对外部状态或环境产生的影响。这些影响可能包括：  修改全局变量：函数可能会改变全局作用域中的变量值。 修改参数：如果参数是可变对象（如列表或字典），函数可能会直接修改这些对象。 输入&#x2F;输出操作：函数可能会进行文件读写、打印输出等操作。 抛出异常：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-0-Introduction/2025031547.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-0-Introduction/2025031553.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-0-Introduction/2025031520.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-0-Introduction/2025031553-1.png">
+<meta property="article:published_time" content="2025-03-15T05:25:51.000Z">
+<meta property="article:modified_time" content="2025-03-15T05:37:14.411Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="C++">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-0-Introduction/2025031547.png">
+  
+  
+  
+  <title>C++高级程序设计-0-Introduction - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="C++高级程序设计-0-Introduction"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-03-15 13:25" pubdate>
+          2025年3月15日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          16 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">C++高级程序设计-0-Introduction</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <blockquote>
+<p>[!tip]+ 考核<br>
+作业 10% + 上机 25% + 项目 15% + 期末 50%</p>
+</blockquote>
+<h2 id="预备知识">预备知识</h2>
+<p><strong>函数的副作用</strong><br>
+指在函数执行过程中，除了返回值之外，对外部状态或环境产生的影响。这些影响可能包括：</p>
+<ul>
+<li>修改全局变量：函数可能会改变全局作用域中的变量值。</li>
+<li>修改参数：如果参数是可变对象（如列表或字典），函数可能会直接修改这些对象。</li>
+<li>输入/输出操作：函数可能会进行文件读写、打印输出等操作。</li>
+<li>抛出异常：函数可能会引发异常，影响程序的控制流。</li>
+<li>网络请求：函数可能会进行网络请求，改变外部系统的状态。</li>
+</ul>
+<p>副作用的存在使得函数的行为不再是完全可预测的，因为相同的输入可能导致不同的输出，具体取决于函数执行时的外部状态。这与“纯函数”相对，后者在相同输入下总是返回相同的输出，并且不产生副作用。</p>
+<p><strong>数据类型-联合</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-class"><span class="hljs-keyword">union</span> <span class="hljs-title">Data</span> &#123;</span><br>    <span class="hljs-type">int</span> intValue;<br>    <span class="hljs-type">float</span> floatValue;<br>    <span class="hljs-type">char</span> charValue;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>特点</p>
+<ul>
+<li>内存节省：由于所有成员<strong>共享同一内存</strong>，联合的大小等于其最大成员的大小。</li>
+<li>只能存储一个值：在任何时刻，联合只能存储一个成员的值，设置一个成员的值会覆盖其他成员的值。</li>
+<li>类型安全：使用联合时，程序员需要小心，以确保在访问联合成员时，所访问的成员是最近设置的成员。</li>
+</ul>
+<p><strong>数据类型-枚举</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">Day</span> &#123;</span><br>    Sunday,<br>    Monday,<br>    Tuesday,<br>    Wednesday,<br>    Thursday,<br>    Friday,<br>    Saturday<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p><strong>必须用指针的情况</strong>：</p>
+<ul>
+<li>提高参数传递效率（直接传递地址，不用形参）</li>
+<li>访问动态变量</li>
+</ul>
+<p><strong>static 的使用</strong>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 局部使用</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">function</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">static</span> <span class="hljs-type">int</span> count = <span class="hljs-number">0</span>; <span class="hljs-comment">// 只初始化一次</span><br>    count++;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Count: %d\n&quot;</span>, count);<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    function(); <span class="hljs-comment">// 输出 Count: 1</span><br>    function(); <span class="hljs-comment">// 输出 Count: 2</span><br>    function(); <span class="hljs-comment">// 输出 Count: 3</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 全局使用</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> globalVar = <span class="hljs-number">0</span>; <span class="hljs-comment">// 仅在此文件可见</span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">increment</span><span class="hljs-params">()</span> &#123;<br>    globalVar++;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    increment();<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Global Variable: %d\n&quot;</span>, globalVar); <span class="hljs-comment">// 输出 Global Variable: 1</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="C-对-C-的扩充">C++对 C 的扩充</h2>
+<h3 id="内联函数">内联函数</h3>
+<p>宏定义的不足：</p>
+<ul>
+<li>需要加上很多括号</li>
+<li>有时会出现重复计算</li>
+<li>替换时不进行参数类型检查和转换<br>
+内联函数：</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title">max</span><span class="hljs-params">(<span class="hljs-type">int</span> a, <span class="hljs-type">int</span> b)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">return</span> a&gt;b?a:b;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>建议编译程序把该函数的函数体展开到调用点，函数调用时直接执行函数体。<br>
+P.S 递归函数往往不能作为内联函数；内联函数名具有文件作用域</p>
+<h3 id="名空间作用域">名空间作用域</h3>
+<ul>
+<li>把全局标识符定义在一个名空间中，其作用域为该名空间。</li>
+<li>当在一个名空间外部需要使用该名空间中定义的全局标识符时，需要用该名空间的名字来修饰或受限。</li>
+</ul>
+<h3 id="动态变量">动态变量</h3>
+<p><em>p1</em> = <strong>new</strong> int;</p>
+<p><strong>delete</strong> <em>p1</em>;</p>
+<p>对于普通的动态变量，C++与 C 的做法区别不大，但如果创建的是动态对象，则两者是有差别的：</p>
+<ul>
+<li>除了为对象分配空间外，new 还会去调用<strong>对象类的构造函数进行对象初始化</strong>， malloc（calloc）则否。</li>
+<li>除了收回为对象分配的空间外，delete 还会去调用对象类的析构函数进行对象消亡后的清理，free 则否。</li>
+</ul>
+<p>C/C++动态变量的问题</p>
+<ul>
+<li>没有自动废区收集功能，动态变量需要程序<strong>显式用 free 或 delete 撤销</strong>，否则会出现内存泄漏问题！</li>
+</ul>
+<h3 id="引用类型">引用类型</h3>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-type">int</span> x;<br><span class="hljs-type">int</span> &amp;y=x; <span class="hljs-comment">//y为引用类型的变量，它是x的别名</span><br>y = <span class="hljs-number">10</span>;  <span class="hljs-comment">//通过y访问x，效果上等价于：x = 10;</span><br></code></pre></td></tr></table></figure>
+<h4 id="用处">用处</h4>
+<p>提高函数参数传递效率</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">(A &amp;x)</span></span>&#123;<span class="hljs-comment">// x使用实参的内存空间</span><br>...<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>保证形参访问的永远是实参数据<br>
+保证通过形参访问的永远是实参数据<br>
+<img src="2025031547.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<blockquote>
+<p>[!note]<br>
+即通过引用类型不可以在函数体内指向其他位置，而普通指针可以（但可以通过 const 达到引用类型的效果</p>
+</blockquote>
+<h4 id="如何防止函数通过指针和引用类型的形参修改实参数据">如何防止函数通过指针和引用类型的形参修改实参数据</h4>
+<p><strong>const</strong><br>
+<img src="2025031553.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h4 id="函数返回值可以为引用类型">函数返回值可以为引用类型</h4>
+<p><img src="2025031520.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<blockquote>
+<p>[!warning]+<br>
+不要把局部量的引用返回给调用者，因为函数返回后，局部量的内存空间已无效，后续操作中可能又分配给其它变量</p>
+</blockquote>
+<p><img src="2025031553-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="函数名重载">函数名重载</h3>
+<blockquote>
+<p>[!quote]+ 定义<br>
+在相同的作用域中，可以用同一个名字定义多个不同的函数，这时，要求定义的这些函数应具有不同的参数（参数个数或类型要有所不同）。</p>
+</blockquote>
+<h4 id="绑定">绑定</h4>
+<p>定义：确定一个对重载函数的调用对应着哪一个重载函数定义的过程</p>
+<h5 id="精确匹配">精确匹配</h5>
+<p>实参与形参的类型完全相同，或者对实参进行“微小”的类型转换后与形参类型相同：</p>
+<ul>
+<li>数组变量名-&gt;数组第一个元素的内存地址</li>
+<li>函数名-&gt;函数的内存首地址</li>
+</ul>
+<h5 id="提升匹配">提升匹配</h5>
+<p>先对实参进行下面的类型提升，然后进行精确匹配：</p>
+<ul>
+<li>按整型提升规则提升实参类型</li>
+<li>把 float 类型实参提升到 double</li>
+<li>把 double 类型实参提升到 long double</li>
+</ul>
+<h5 id="标准转换匹配">标准转换匹配</h5>
+<p>先进行下面的标准转换，然后进行精确匹配：</p>
+<ul>
+<li>任何算术类型可以互相转换</li>
+<li>枚举类型可以转换成任何算术类型</li>
+<li>零可以转换成任何算术类型或指针类型</li>
+<li>任何类型的指针可以转换成 void *
+<blockquote>
+<p>[!warning]+<br>
+每个标准转换都是平等的，不存在哪个优先：<br>
+如果存在多个标准转换后能精确匹配，则失败！ （具有歧义）</p>
+</blockquote>
+</li>
+</ul>
+<h5 id="绑定失败">绑定失败</h5>
+<p>不存在匹配 or 存在多个匹配</p>
+<p>解决办法是：</p>
+<ul>
+<li>对实参进行显式类型转换，如，
+<ul>
+<li>print ((char) 1) 或 print ((double) 1)</li>
+</ul>
+</li>
+<li>增加额外的重载，如，
+<ul>
+<li>增加一个重载函数定义： void print (int);</li>
+</ul>
+</li>
+</ul>
+<h3 id="变量初始化">变量初始化</h3>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-type">int</span> x&#123;<span class="hljs-number">5</span>&#125;; <span class="hljs-comment">// int x(5);</span><br><span class="hljs-type">int</span> p1 = <span class="hljs-keyword">new</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">2</span>);<br><span class="hljs-type">int</span> arr[<span class="hljs-number">3</span>]&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;;<br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Point</span> &#123; <span class="hljs-type">int</span> x; <span class="hljs-type">int</span> y;&#125; point&#123;<span class="hljs-number">10</span>, <span class="hljs-number">20</span>&#125;;<br><span class="hljs-type">int</span> *p2 = <span class="hljs-keyword">new</span> <span class="hljs-type">int</span>[<span class="hljs-number">5</span>]&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>&#125;;<br></code></pre></td></tr></table></figure>
+<h3 id="基于范围的-for">基于范围的 for</h3>
+<p>C++语言注重程序的效率，运行时刻不对数组元素下标越界进行检查，从而造成下面错误代码的执行不会报错</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-type">int</span> a[<span class="hljs-number">10</span>], sum;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;=<span class="hljs-number">10</span>; i++) cin &gt;&gt; a[i]; sum=<span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;=<span class="hljs-number">10</span>; i++) sum += a[i];<br></code></pre></td></tr></table></figure>
+<p>为了方便、可靠地实现一些简单地对一维数组元素进行遍历的操作，在 C++新国际标准（C++11 以后）中提供了一种<strong>基于范围的 for</strong> 语句，它能自动遍历数组元素。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> &amp;n: a) cin &gt;&gt; n;<br></code></pre></td></tr></table></figure>
+<h3 id="类型自动判断：auto">类型自动判断：auto</h3>
+<p>定义一个变量时可以不指定它的类型，由编译器根据初始化的值自动确定它的类型。例如：</p>
+<ul>
+<li>auto x=1+2 * 3.4; //编译程序自动确定 x 的类型为 double</li>
+</ul>
+<p>P.S: 自动生存期的局部变量不能再显式地用 auto 来指出</p>
+<h3 id="字符串常量与字符指针">字符串常量与字符指针</h3>
+<ul>
+<li>按 C 语言，可以；按 C++语言，不可以！</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">(<span class="hljs-type">char</span> *p)</span></span>&#123;...&#125;<br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">g</span><span class="hljs-params">(<span class="hljs-type">char</span> x[])</span></span>&#123;...&#125;<br><br><span class="hljs-type">char</span> *p = <span class="hljs-string">&quot;abcd&quot;</span>; <span class="hljs-comment">// ERROR</span><br><span class="hljs-built_in">f</span>(<span class="hljs-string">&quot;1234&quot;</span>); <span class="hljs-comment">// ERROR</span><br><span class="hljs-built_in">g</span>(<span class="hljs-string">&quot;1234&quot;</span>); <span class="hljs-comment">// ERROR</span><br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>[!warning]+<br>
+C++需要指向常量的指针<br>
+即使用 const char *p = “abcd” 或者 f (const char *p) 是可以的</p>
+</blockquote>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2024%E7%A7%8B-C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" class="category-chain-item">2024秋-C++高级程序设计</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/C/" class="print-no-link">#C++</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>C++高级程序设计-0-Introduction</div>
+      <div>https://astronautbase.github.io/2025/03/15/C-高级程序设计-0-Introduction/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年3月15日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-1-%E6%8A%BD%E8%B1%A1%E5%B0%81%E8%A3%85/" title="C++高级程序设计-1-抽象封装">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">C++高级程序设计-1-抽象封装</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/12/Docker%E5%AE%B9%E5%99%A8%E9%85%8D%E7%BD%AE/" title="Docker容器配置">
+                        <span class="hidden-mobile">Docker容器配置</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
