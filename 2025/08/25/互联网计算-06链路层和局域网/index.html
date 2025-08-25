@@ -1,0 +1,1371 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="总结 数据链路层服务背后的原理：  检错、纠错 共享广播式信道：多路访问 链路编址  各种链路层技术的实例和实现  Ethernet 交换式 LANs, VLANs 虚拟成链路层的网络：MPLS  综合：一个 web 页面请求的日常场景 引入 术语：  nodes: 主机、路由器 links: 沿着通信路径，连接相邻节点的通信信道  有线、无线 局域网 LANs   第二层协议数据单元 “帧 fr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="互联网计算-06链路层和局域网">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="总结 数据链路层服务背后的原理：  检错、纠错 共享广播式信道：多路访问 链路编址  各种链路层技术的实例和实现  Ethernet 交换式 LANs, VLANs 虚拟成链路层的网络：MPLS  综合：一个 web 页面请求的日常场景 引入 术语：  nodes: 主机、路由器 links: 沿着通信路径，连接相邻节点的通信信道  有线、无线 局域网 LANs   第二层协议数据单元 “帧 fr">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060374.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060364.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060337.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060361.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060336.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060343.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060345.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060389.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060313.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060312.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060316.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060390.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060373.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060317.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060350.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060300.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060392.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060353.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060303.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060344.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060356.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060375.png">
+<meta property="article:published_time" content="2025-08-25T08:54:47.000Z">
+<meta property="article:modified_time" content="2025-08-25T10:40:41.949Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="计算机基础">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/2025060374.png">
+  
+  
+  
+  <title>互联网计算-06链路层和局域网 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="互联网计算-06链路层和局域网"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 16:54" pubdate>
+          2025年8月25日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          47 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">互联网计算-06链路层和局域网</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>总结<br>
+数据链路层服务背后的原理：</p>
+<ul>
+<li>检错、纠错</li>
+<li>共享广播式信道：多路访问</li>
+<li>链路编址</li>
+</ul>
+<p>各种链路层技术的实例和实现</p>
+<ul>
+<li>Ethernet</li>
+<li>交换式 LANs, VLANs</li>
+<li>虚拟成链路层的网络：MPLS</li>
+</ul>
+<p>综合：一个 web 页面请求的日常场景</p>
+<h2 id="引入">引入</h2>
+<p>术语：</p>
+<ul>
+<li>nodes: 主机、路由器</li>
+<li>links: 沿着通信路径，连接相邻节点的通信信道
+<ul>
+<li>有线、无线</li>
+<li>局域网 LANs</li>
+</ul>
+</li>
+<li>第二层协议数据单元 “帧 frame”，封装数据报</li>
+</ul>
+<p><em>数据链路层负责从一个节点通过链路将（帧中的）数据报发送到相邻的物理节点</em></p>
+<p>上下文：</p>
+<ul>
+<li>数据报（分组）在不同链路上以不同的链路协议传输</li>
+<li>不同的链路层协议提供不同的服务</li>
+</ul>
+<p>类比：</p>
+<p><img src="2025060374.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>链路层：服务</strong></p>
+<p>成帧，链路接入：</p>
+<ul>
+<li>将数据报封装在帧中，加上帧头、帧尾部</li>
+<li>如果采用的式共享性介质，信道接入获得信道访问权</li>
+<li>在帧头部使用“<em>MAC</em>”地址来标识源和目的（不同于 IP 地址）</li>
+</ul>
+<p>在相邻两个节点完成可靠数据传输</p>
+<ul>
+<li>在低错误率的链路上（光纤和双绞线电缆）很少使用</li>
+<li>在无线链路经常使用：出错率高</li>
+</ul>
+<p>流量控制：</p>
+<ul>
+<li>使得相邻的发送和接收方节点的速度匹配</li>
+</ul>
+<p>错误检测：</p>
+<ul>
+<li>差错由信号衰减和噪声引起</li>
+<li>接收方检测处的错误：通知发送方进行重传或丢弃帧</li>
+</ul>
+<p>差错纠正：</p>
+<ul>
+<li>接收端检查和纠正 bit 错误，不通过重传来纠正错误</li>
+</ul>
+<p>半双工和全双工：</p>
+<ul>
+<li>半双工：链路可以双向传输，但一次只有一个方向</li>
+</ul>
+<p><em>链路层实现的位置</em></p>
+<ul>
+<li>在每个主机上</li>
+<li>链路层功能实现在 NIC 或芯片组</li>
+<li>接到主机的系统总线上</li>
+<li>硬件、软件和固件的综合体</li>
+</ul>
+<h2 id="差错检测和纠正">差错检测和纠正</h2>
+<p><strong>错误检测</strong><br>
+EDC=差错检测和纠正位（冗余位）<br>
+D=由差错检测保护的数据，可以包含头部字段<br>
+错误检测不是 100%可靠的</p>
+<ul>
+<li>协议会漏检一些错误，但是很少</li>
+<li>更长的 EDC 字段可以得到更好的检测和纠正效果</li>
+</ul>
+<p><img src="2025060364.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>奇偶校验：<br>
+<img src="2025060337.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>Internet 校验和</strong><br>
+目标：检测在传输报文段时的错误（如位翻转）</p>
+<p>发送方：</p>
+<ul>
+<li>将报文段堪称 16bit 整数</li>
+<li>报文段的检验和：和 1’ 的补码和</li>
+<li>发送方将 checksum 的值放在 ‘UDP 校验和’ 字段</li>
+</ul>
+<p>接收方：</p>
+<ul>
+<li>计算接收到的报文段的校验和</li>
+<li>检查是否与携带的校验和字段值一致
+<ul>
+<li>不一致：检出错误</li>
+<li>一致：没有检出错误，但可能还是由错误</li>
+</ul>
+</li>
+<li>ps. 更简单的检查：全部加起来看是不是全 1</li>
+</ul>
+<p>检验和：<em>循环冗余校验 CRC</em><br>
+<img src="2025060361.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>例：<br>
+<img src="2025060336.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="多点访问协议">多点访问协议</h2>
+<p>两种类型的链路（一个子网内部链路连接形式）：</p>
+<ul>
+<li>点对点
+<ul>
+<li>以太网交换机和主机之间的点对点链路</li>
+<li>拨号访问的 PPP</li>
+</ul>
+</li>
+<li>广播（共享线路或媒体）
+<ul>
+<li>传统以太网</li>
+<li>HDC 上行链路</li>
+<li>802.11 无线局域网</li>
+</ul>
+</li>
+</ul>
+<p>单个共享的广播型链路<br>
+2 个或更多站点同时传送：冲突</p>
+<ul>
+<li>多个节点在同一个时刻发送，则会收到 2 个或多个信号叠加</li>
+</ul>
+<p>多路访问协议（multiple access protocol <strong>MAC</strong>）</p>
+<ul>
+<li>分布式算法 - 决定节点如何使用共享信道，即决定节点什么时候可以发送</li>
+<li>关于共享控制的信道必须借助信道本身传输
+<ul>
+<li>没有带外的信道，各节点使用其协调信道使用</li>
+</ul>
+</li>
+</ul>
+<h3 id="理想的多路访问协议">理想的多路访问协议</h3>
+<p>给定：Rbps 的广播信号</p>
+<p>必要条件</p>
+<ul>
+<li>当一个节点要发送时，可以 R 速率发送</li>
+<li>当 M 个节点要发送，每个可以以 R/M 的平均速率发送</li>
+<li>完全分布的
+<ul>
+<li>没有特殊节点协调发送</li>
+<li>没有时钟和时隙的同步</li>
+</ul>
+</li>
+<li>简单</li>
+</ul>
+<p><strong>MAC 协议：分类</strong></p>
+<ul>
+<li>信道划分
+<ul>
+<li>把信道划分成小片（时间、频率、编码）</li>
+<li>分配片给每个节点专用</li>
+</ul>
+</li>
+<li>随机访问
+<ul>
+<li>信道不划分，允许冲突</li>
+<li>冲突后恢复</li>
+</ul>
+</li>
+<li>依次轮流
+<ul>
+<li>节点依次轮流</li>
+<li>但是有很多数据传输的节点可以获得较长的信道使用权</li>
+</ul>
+</li>
+</ul>
+<h3 id="信道划分-MAC-协议">信道划分 MAC 协议</h3>
+<p><strong>TDMA</strong></p>
+<ul>
+<li>轮流使用信道，信道的实践分为周期</li>
+<li>每个站点使用每周期中固定的时隙 (长度=帧传输时间) 传输帧</li>
+<li>如果站点无帧传输，时隙空闲-&gt;浪费</li>
+</ul>
+<p><strong>FDMA</strong></p>
+<ul>
+<li>信道的有效频率范围被分成一个个小的频段</li>
+<li>每个站点被分配一个固定的频段</li>
+<li>分配给站点的频段如果没有被使用，则空闲</li>
+</ul>
+<p><strong>码分多路访问 CDMA</strong></p>
+<ul>
+<li>所有站点在整个频段上同时进行传输, 采用编码原理加以区分</li>
+<li>完全无冲突</li>
+<li>假定: 信号同步很好, 线性叠加</li>
+</ul>
+<h3 id="随机存取协议">随机存取协议</h3>
+<p>当节点有帧要发送时</p>
+<ul>
+<li>以信道带宽的全部 R bps 发送</li>
+<li>没有节点间的预先协调</li>
+</ul>
+<p>两个或更多节点同时传输，会发生 ➜ 冲突 “collision”<br>
+随机存取协议规定:</p>
+<ul>
+<li>如何检测冲突</li>
+<li>如何从冲突中恢复（如：通过稍后的重传）</li>
+</ul>
+<p>随机 MAC 协议:</p>
+<ul>
+<li>时隙 ALOHA</li>
+<li>ALOHA</li>
+<li>CSMA, CSMA/CD, CSMA/CA</li>
+</ul>
+<h4 id="时隙-ALOHA">时隙 ALOHA</h4>
+<p>假设：</p>
+<ul>
+<li>所有帧是等长的</li>
+<li>时间被划分为相等的时隙，每个时隙可发送一帧</li>
+<li>节点只在时隙开始时发送帧</li>
+<li>节点在时钟上是同步的</li>
+<li>如果两个或多个节点在一个时隙传输，所有的站点都能检测到冲突</li>
+</ul>
+<p>运行：</p>
+<ul>
+<li>当节点获取新的帧，在下一个时隙传输</li>
+<li>传输时没有检测到冲突，成功
+<ul>
+<li>节点能够在下一时隙发送新帧</li>
+</ul>
+</li>
+<li>检测时如果检测到冲突，失败
+<ul>
+<li>节点在每一个随后的时隙以概率 p 重传帧直到成功</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060343.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>效率：当有很多节点，每个节点有很多帧发送时，x%的时隙是成功传输帧的时隙</p>
+<ul>
+<li>假设 N 个节点，每个节点都有很多帧要发送， 在每个时隙中的传输概率是 p</li>
+<li>一个节点成功传输概率是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>p</mi><msup><mo stretchy="false">)</mo><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">p(1-p)^{N-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0913em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span></li>
+<li>任何一个节点的成功概率是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mi>p</mi><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>p</mi><msup><mo stretchy="false">)</mo><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">Np(1-p)^{N-1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">Np</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0913em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span></li>
+</ul>
+<p>-&gt;最好情况：信道利用率 37%</p>
+<h4 id="CSMA（载波监听多路访问）">CSMA（载波监听多路访问）</h4>
+<p>CSMA：在传输前先侦听信道</p>
+<ul>
+<li>如果侦听到信道空闲，传送整个帧</li>
+<li>如果侦听到信道忙，推迟传送</li>
+</ul>
+<p>CSMA/CD：CSMA with collision detection</p>
+<ul>
+<li>没有传完一个帧就可以在短时间内检测到冲突</li>
+<li>冲突发生时则传输终止，减少对信道的浪费</li>
+<li>冲突检测 CD 技术，有线局域网中容易实现
+<ul>
+<li>检测信号强度，比较传输与接收到的信号是否相同</li>
+<li>通过周期的过零点检测</li>
+</ul>
+</li>
+</ul>
+<p><strong>CSMA：冲突</strong><br>
+冲突仍然可能发生</p>
+<ul>
+<li>由传播延迟造成：两个节点可能侦听不到正在进行的传输<br>
+冲突：整个冲突帧的传输时间都被浪费了，是无效的传输 (红黄区域)</li>
+<li>注意： 传播延迟（距离）决定了冲突的概率</li>
+</ul>
+<p><strong>CSMA/CD</strong></p>
+<p>以太网 CSMA/CD 算法</p>
+<ol>
+<li>Ethernet 获取数据报，创建帧</li>
+<li>发送前：侦听信道 CS
+<ol>
+<li>闲：开始传送帧</li>
+<li>忙：一直等到闲再发送</li>
+</ol>
+</li>
+<li>发送过程中，冲突检测 CD
+<ol>
+<li>没有冲突: 成功</li>
+<li>检测到冲突: 放弃, 之后尝试重发</li>
+</ol>
+</li>
+<li>发送方适配器检测到冲突，除放弃外，还将发送一个 jam 信号，所有听到冲突的适配器也是如此
+<ol>
+<li>强化冲突：让所有站点都知道冲突</li>
+</ol>
+</li>
+<li>如果放弃，适配器进入指数退避状态
+<ol>
+<li>在第 m 次失败后，适配器随机选择一个{0,1,2… 2^m-1}中 k，等待 k * 512 位时，转到步骤 2（二进制指数退避算法 exponential backoff）</li>
+</ol>
+</li>
+</ol>
+<p><strong>无线局域网中的 MAC</strong></p>
+<p>802.11: CSMA – 发送前侦听信道</p>
+<ul>
+<li>不会和其它节点正在进行的传输发生冲突</li>
+<li>没有冲突检测
+<ul>
+<li>无法检测冲突：自身信号远远大于其他节点信号</li>
+</ul>
+</li>
+<li>目标：避免冲突
+<ul>
+<li>无法 CD，一旦发送一股脑全部发送完毕，不 CD</li>
+<li>为了避免无 CD 带来的信道利用率低的问题，事前进行冲突避免</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060345.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>冲突避免</em><br>
+思想：允许发送方“预约”信道，而不是随机访问该信道: 避免长数据帧的冲突（可选项）<br>
+发送方首先使用 CSMA 向 BS 发送一个小的 RTS 分组</p>
+<ul>
+<li>RTS 可能会冲突（但是由于比较短，浪费信道较少）</li>
+</ul>
+<p>BS 广播 clear-to-send CTS，作为 RTS 的响应</p>
+<p>CTS 能够被所有涉及到的节点听到</p>
+<ul>
+<li>发送方发送数据帧</li>
+<li>其它节点抑制发送</li>
+</ul>
+<p>——采用小的预约分组，可以<em>完全避免数据帧的冲突</em><br>
+<img src="2025060389.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="轮流-Taking-Turns-MAC-协议">轮流 Taking Turns MAC 协议</h3>
+<p>信道划分 MAC 协议:</p>
+<ul>
+<li>共享信道在高负载时是有效和公平的</li>
+<li>在低负载时效率低下
+<ul>
+<li>只能等到自己的时隙开始发送或者利用 1/N 的信道频率发送</li>
+<li>当只有一个节点有帧传时，也只能够得到 1/N 个带宽分配</li>
+</ul>
+</li>
+</ul>
+<p>随机访问 MAC 协议</p>
+<ul>
+<li>在低负载时效率高：单个节点可以完全利用信道全部带宽</li>
+<li>高负载时：冲突开销较大，效率极低，时间很多浪费在冲突中</li>
+</ul>
+<p>轮流协议</p>
+<ul>
+<li>有 2 者的优点!</li>
+</ul>
+<p><strong>轮询 polling</strong></p>
+<ul>
+<li>主节点邀请从节点依次传送</li>
+<li>从节点一般比较“dumb”</li>
+<li>缺点:
+<ul>
+<li>轮询开销：轮询本身消耗信道带宽</li>
+<li>等待时间：每个节点需等到主节点轮询后开始传输，即使只有一个节点，也需要等到轮询一周后才能够发送</li>
+<li>单点故障：主节点失效时造成整个系统无法工作</li>
+</ul>
+</li>
+</ul>
+<p><strong>令牌传输</strong></p>
+<ul>
+<li>控制令牌 ( token) 循环从一个节点到下一个节点传递</li>
+<li>令牌报文：特殊的帧</li>
+<li>缺点:
+<ul>
+<li>令牌开销：本身消耗带宽</li>
+<li>延迟：只有等到抓住令牌，才可传输</li>
+<li>单点故障 (token)：  令牌丢失系统级故障，整个系统无法传输</li>
+<li>复杂机制重新生成令牌</li>
+</ul>
+</li>
+</ul>
+<h3 id="线缆接入网络">线缆接入网络</h3>
+<p><img src="2025060313.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060312.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="LANs">LANs</h2>
+<h3 id="addressing-ARP">addressing, ARP</h3>
+<p><strong>MAC 地址</strong></p>
+<p>32bitIP 地址:</p>
+<ul>
+<li>网络层地址</li>
+<li>前 n-1 跳：用于使数据报到达目的 IP 子网</li>
+<li>最后一跳：到达子网中的目标节点</li>
+</ul>
+<p>LAN（MAC/物理/以太网）地址:</p>
+<ul>
+<li>用于使帧从一个网卡传递到与其物理连接的另一个网卡 (在同一个物理网络中)</li>
+<li>48bit MAC 地址固化在适配器的 ROM，有时也可以通过软件设定</li>
+<li>理论上全球任何 2 个网卡的 MAC 地址都不相同</li>
+</ul>
+<p>MAC 地址由 IEEE 管理和分配<br>
+制造商购入 MAC 地址空间（保证唯一性）<br>
+类比:</p>
+<ul>
+<li>MAC 地址：社会安全号</li>
+<li>IP 地址：通讯地址</li>
+</ul>
+<p><em>MAC 平面地址 ➜ 支持移动</em></p>
+<ul>
+<li>可以将网卡到接到其它网络</li>
+</ul>
+<p><em>IP 地址有层次-不能移动</em></p>
+<ul>
+<li>依赖于节点连接的 IP 子网，与子网的网络号相同（ 有与其相连的子网相同的网络前缀）</li>
+</ul>
+<p><strong>ARP：Address Resolution Protocol</strong><br>
+已知 B 的 IP 地址，如何确定 B 的 MAC 地址？</p>
+<ul>
+<li>在 LAN 的每个 IP 节点都有一个 ARP 表</li>
+<li>ARP 表：包括一些 LAN 节点 IP/MAC 地址的映射，&lt; IP address; MAC address; TTL&gt;
+<ul>
+<li>TTL 时间是指地址映射失效的时间（典型是 20min）</li>
+</ul>
+</li>
+</ul>
+<p><em>ARP protocol in action</em><br>
+例：A 要发送帧给 B（B 的 IP 地址已知），但 B 的 MAC 地址不在 A 的 ARP 表中：</p>
+<ol>
+<li>A 广播包含 B 的 IP 地址的 ARP 查询包
+<ol>
+<li>Dest MAC address = FF-FF-FF-FF-FF-FF</li>
+<li>LAN 上的所有节点都会收到该查询包</li>
+</ol>
+</li>
+<li>B 接收到 ARP 包，回复 A 自己的 MAC 地址
+<ol>
+<li>帧发送给 A</li>
+<li>用 A 的 MAC 地址（单播）</li>
+</ol>
+</li>
+<li>A 在自己的 ARP 表中，缓存 IP-to-MAC 地址映射关系 ，直到信息超时
+<ol>
+<li>软状态: 靠定期刷新维持的系统状态</li>
+<li>定期刷新周期之间维护的状态信息可能和原有系统不一致</li>
+</ol>
+</li>
+</ol>
+<p>ARP 是即插即用的</p>
+<ul>
+<li>节点自己创建 ARP 的表项</li>
+<li>无需网络管理员的干预</li>
+</ul>
+<p><em>路由到其它 LAN</em><br>
+Walkthrough : 发送数据报：由 A 通过 R 到 B， 假设 A 知道 B 的 IP 地址</p>
+<p><img src="2025060316.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>A 创建数据报，源 IP 地址：A；目标 IP 地址：B<br>
+A 创建一个链路层的帧，目标 MAC 地址是 R，该帧包含 A 到 B 的 IP 数据报</p>
+<p><img src="2025060390.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>R 转发数据报，数据报源 IP 地址为 A，目标 IP 地址为 B<br>
+R 创建一个链路层的帧，目标 MAC 地址为 B，帧中包含 A 到 B 的 IP 数据报</p>
+<p><img src="2025060373.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="以太网-Ethernet">以太网 Ethernet</h3>
+<p>物理拓扑<br>
+<img src="2025060317.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>以太帧结构</strong><br>
+<img src="2025060350.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>前导码:</p>
+<ul>
+<li>7B 10101010 + 1B 10101011</li>
+<li>用来同步接收方和发送方的时钟速率
+<ul>
+<li>使得接收方将自己的时钟调到发送端的时钟</li>
+<li>从而可以按照发送端的时钟来接收所发送的帧</li>
+</ul>
+</li>
+</ul>
+<p>地址：6 字节源 MAC 地址，目标 MAC 地址</p>
+<ul>
+<li>如：帧目标地址=本站 MAC 地址，或是广播地址， 接收，递交帧中的数据到网络层</li>
+<li>否则，适配器忽略该帧</li>
+</ul>
+<p>类型：指出高层协 (大多情况下是 IP，但也支持其它网络层协议 Novell IPX 和 AppleTalk)<br>
+CRC：在接收方校验</p>
+<ul>
+<li>如果没有通过校验，丢弃错误帧</li>
+</ul>
+<p><strong>以太网：无连接、不可靠的服务</strong><br>
+无连接：帧传输前，发送方和接收方之间没有握手<br>
+不可靠：接收方适配器不发送 ACKs 或 NAKs 给发送方</p>
+<ul>
+<li>递交给网络层的数据报流可能有 gap</li>
+<li>如上层使用像传输层 TCP 协议这样的 rdt，gap 会被补上 ( 源主机，TCP 实体)</li>
+<li>否则，应用层就会看到 gap</li>
+</ul>
+<p>以太网的 MAC 协议：采用二进制退避的 <em>CSMA/CD</em> 介质访问控制形式</p>
+<h3 id="Ethernet-switch-交换机">Ethernet switch 交换机</h3>
+<p>交换机是链路层设备：扮演主要角色</p>
+<ul>
+<li>对帧进行存储和转发</li>
+<li>对于到来的帧，检查帧头，根据目标 MAC 地址进行选择性转发</li>
+<li>当帧需要向某个（些）网段进行转发，需要使用 CSMA/CD 进行接入控制</li>
+<li>通常一个交换机端口一个独立网段</li>
+</ul>
+<p><em>透明</em>：主机对交换机的存在可以不关心</p>
+<ul>
+<li>通过交换机相联的各节点好像这些站点是直接相联的一样</li>
+<li>有 MAC 地址；无 IP 地址</li>
+</ul>
+<p><em>即插即用，自学习</em>：</p>
+<ul>
+<li>交换机无需配置</li>
+</ul>
+<p><strong>多路同时传输</strong></p>
+<ul>
+<li>主机有一个专用和直接到交换机的连接</li>
+<li>交换机缓存到来的帧</li>
+<li>对每个帧进入的链路使用以太网协议，没有碰撞；全双工
+<ul>
+<li>每条链路都是一个独立的碰撞域</li>
+<li>MAC 协议在其中的作用弱化了</li>
+</ul>
+</li>
+<li>交换：A-to-A’ 和 B-to-B’ 可以同时传输，没有碰撞</li>
+</ul>
+<p><strong>交换机转发表</strong><br>
+<img src="2025060300.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>自学习</strong><br>
+交换机通过学习得到哪些主机（mac 地址）可以通过哪些端口到达</p>
+<ul>
+<li>当接收到帧，交换机学习到发送站点所在的端口（网段）</li>
+<li>记录发送方 MAC 地址/ 进入端口映射关系， 在交换表中</li>
+</ul>
+<p><strong>过滤/转发</strong><br>
+当交换机收到一个帧:</p>
+<ol>
+<li>记录进入链路，发送主机的 MAC 地址</li>
+<li>使用目标 MAC 地址对交换表进行索引</li>
+</ol>
+<p><img src="2025060392.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>帧的目标： A’, 不知道其位置在哪： 泛洪<br>
+知道目标 A 对应的链路 ： 选择性发送到那个端口</p>
+<p><strong>交换机级联</strong><br>
+交换机可被级联到一起<br>
+Q: A to G 的发送 – 交换机 S1 如何知道经过从 S4 和 S3 最终达到 F?</p>
+<ul>
+<li>A: 自学习! (和在一个交换机联接所有站点一样!)</li>
+</ul>
+<p><strong>交换机 vs. 路由器</strong><br>
+都是存储转发设备，但层次不同</p>
+<ul>
+<li>交换机：链路层设备（检查链路层头部）</li>
+<li>路由器：网络层设备（检查网络层的头部）</li>
+</ul>
+<p>都有转发表：</p>
+<ul>
+<li>交换机：维护交换表，按照 MAC 地址转发
+<ul>
+<li>执行过滤、自学习和生成树算法</li>
+<li>即插即用；二层设备，速率高</li>
+<li>执行生成树算法，限制广播帧的转发</li>
+<li>ARP 表项随着站点数量增多而增多</li>
+</ul>
+</li>
+<li>路由器：维护路由表，执行路由算法
+<ul>
+<li>路由算法能够避免环路，无需执行生成树算法，可以以各种拓扑构建网络</li>
+<li>对广播分组做限制</li>
+<li>不是即插即用的，配置网络地址（子网前缀）</li>
+<li>三层设备，速率低</li>
+</ul>
+</li>
+</ul>
+<h3 id="VLANs">VLANs</h3>
+<p>考虑场景：<br>
+CS 用户搬到 EE 大楼办公室 ，但是希望连接到 CS 的交换机?</p>
+<ul>
+<li>接到多个交换机上
+<ul>
+<li>麻烦和浪费：96 端口 /10 个有用</li>
+</ul>
+</li>
+<li>如果都接到一个交换机上 ，在一个广播域
+<ul>
+<li>所有的层 2 广播流量 (ARP, DHCP, 不知道 MAC 地址对应端口的帧 ) 都必须穿过整个 LAN</li>
+<li>安全性/私密性的问题</li>
+</ul>
+</li>
+</ul>
+<p><strong>Port-based VLANs</strong><br>
+<em>Virtual Local Area Network (VLAN)</em>：带有 VLAN 功能的交换机（们）可以被配置成：一个物理 LAN 基础设施，虚拟成多个 LANs</p>
+<p>基于端口的 VLAN：交换机端口</p>
+<p>成组（通过交换机管理软件），以至于单个的交换机可以分成若干虚拟 LANs；就像多个虚拟的交换机</p>
+<ul>
+<li>流量隔离：从/到 1-8 端口的流量只会涉及 1-8
+<ul>
+<li>也可以基于 MAC 地址进行 VLAN 定义</li>
+</ul>
+</li>
+<li>动态成员：成员可以在 VLANs 之间动态分配</li>
+<li>在 VLANs 间转发：通过路由器进行转发 (就像他们通过各自的交换机相联一样)
+<ul>
+<li>实际操作中，设备生产商可以提供： 交换机和路由器的单一设备</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060353.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>VLANs 互联多个交换机</strong></p>
+<ul>
+<li>
+<p>如果有多个交换机，希望它们相连并且共享 VLANs 信息</p>
+</li>
+<li>
+<p>方法 1：各交换机每个 VLAN 一个端口和另外交换机相应 VLAN 端口相连-&gt;扩展性问题</p>
+</li>
+<li>
+<p>trunk port 干线端口: 多个交换机共享定义的 VLAN，在它们之间传输帧 - 帧在不同交换机上的一个 VLAN 上转发，不能够再使用 vanilla 802.1 帧 (必须要携带 VLAN ID 信息) - 802.1q 协议增加/移除附加的头部字段，用于在 trunk 端口上进行帧的转发</p>
+<p>802.1Q VLAN 帧格式</p>
+</li>
+</ul>
+<p><img src="2025060303.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="链路虚拟化：MPLS">链路虚拟化：MPLS</h2>
+<p><strong>Multiprotocol label switching MPLS</strong></p>
+<p>目的：使用固定长度的标签 label 进行高速率 IP 转发（而不是使用 IP address，采用最长前缀匹配）</p>
+<ul>
+<li>一开始采用固定长度 ID 进行查表</li>
+<li>借鉴了虚电路 VC 的思想</li>
+<li>但是 IP 数据报仍然保留 IP 地址</li>
+</ul>
+<p>在帧和其封装的分组之间加入一个垫层，标签交换使能的路由器使用垫层信息进行分组转发，不解析分组目标地址<br>
+<img src="2025060344.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>具有 MPLS 能力的路由器</em></p>
+<ul>
+<li>a.k.a. 标签交换路由器</li>
+<li>基于标签的值进行分组的转发 (而非检查 IP 地址)
+<ul>
+<li>MPLS 转发表和 IP 转发表相互独立</li>
+</ul>
+</li>
+<li>弹性: MPLS 转发决策可以和 IP 不同
+<ul>
+<li>采用源地址和目标地址来路由到达同一个目标的流，不同路径（支持流量工程）</li>
+<li>如果链路失效，能够快速重新路由: 预先计算好的备份链路 (对于 VoIP 有效)</li>
+</ul>
+</li>
+</ul>
+<p><em>MPLS vs. IP 路径</em><br>
+<img src="2025060356.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>MPLS 转发表<br>
+<img src="2025060375.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="数据中心网络">数据中心网络</h2>
+<p>负载均衡器：应用层路由</p>
+<ul>
+<li>接受外部的客户端请求</li>
+<li>将请求导入到数据中心内部</li>
+<li>返回结果给外部客户端 (对于客户端隐藏数据中心的内部结构)</li>
+</ul>
+<p>在交换机之间，机器阵列之间有丰富的互连措施:</p>
+<ul>
+<li>在阵列之间增加吞吐 (多个可能的路由路径)</li>
+<li>通过冗余度增加可靠性</li>
+</ul>
+<h2 id="a-day-in-the-life-of-web-request">a day in the life of web request</h2>
+<p>Top-down 的协议栈旅程结束了</p>
+<ul>
+<li>应用层、运输层、网络层和链路层</li>
+</ul>
+<p>以一个 web 页面请求的例子: 综述</p>
+<ul>
+<li>目标: 标示、回顾和理解涉及到的协议（所有层次 ），以一个看似简单的场景: 请求 www 页面</li>
+<li>场景：学生在校园启动一台笔记本电脑：<a target="_blank" rel="noopener" href="http://xn--www-kx3ei6au67d7ynk03d.google.com">请求和接受www.google.com</a></li>
+</ul>
+<p><strong>连接到互联网</strong></p>
+<ul>
+<li>笔记本需要一个 IP 地址，第一跳路由器的 IP 地址，DNS 的地址：采用 DHCP</li>
+<li>DHCP 请求被封装在 UDP 中，封装在 IP 中，封装在 802.3 以太网帧中</li>
+<li>以太网的帧在 LAN 上广播 (dest: FFFFFFFFFFFF), 被运行中的 DHCP 服务器接收到</li>
+<li>以太网帧中解封装 IP 分组， 解封装 UDP，解封装 DHCP</li>
+<li>DHCP 服务器生成 DHCP ACK 包括客户端 IP 地址，第一跳路由器 IP 地址和 DNS 域名服务器地址</li>
+<li>在 DHCP 服务器封装，帧通过 LAN 转发（交换机学习）在客户端解封装</li>
+<li>客户端接收 DHCP ACK 应答</li>
+</ul>
+<p>-&gt; 客户端有了 IP 地址，知道了 DNS 域名服务器的名字和 IP 地址第一跳路由器的 IP 地址</p>
+<p><strong>ARP (DNS 之前，HTTP 之前)</strong></p>
+<ul>
+<li>在发送 HTTP request 请求之前，需要知道www.google.com的IP地址: DNS</li>
+<li>DNS 查询被创建，封装在 UDP 段中 ，封装在 IP 数据报中，封装在以太网的帧中. 将帧传递给路由器 ，但是需要知道路由器的接口： MAC 地址：ARP</li>
+<li>ARP 查询广播，被路由器接收， 路由器用 ARP 应答，给出其 IP 地址某个端口的 MAC 地址</li>
+<li>客户端现在知道第一跳路由器 MAC 地址，所以可以发送 DNS 查询帧了</li>
+</ul>
+<p><strong>使用 DNS</strong></p>
+<ul>
+<li>包含 DNS 查询的 IP 数据报通过 LAN 交换机转发，从客户端到第一跳服务器</li>
+<li>IP 数据报被转发，从校园到达 comcast 网络，路由（路由表被 RIP，OSPF，IS-IS 和/或 BGP 协议创建）到 DNS 服务器</li>
+<li>被 DNS 服务器解封装</li>
+<li>DNS 服务器回复给客户端：www.google.com的IP地址</li>
+</ul>
+<p><strong>TCP 连接携带 HTTP 报文</strong></p>
+<ul>
+<li>为了发送 HTTP 请求，客户端打开到达 web 服务器的 TCP socket</li>
+<li>TCP SYN 段 (3 次握手的第 1 次握手) 域间路由到 web 服务器</li>
+<li>web 服务器用 TCP SYNACK 应答 (3 次握手的第 2 次握手)</li>
+<li>TCP 连接建立了</li>
+</ul>
+<p><strong>HTTP 请求和应答</strong></p>
+<ul>
+<li>HTTP 请求发送到 TCP socket 中</li>
+<li>IP 数据报包含 HTTP 请求，<a target="_blank" rel="noopener" href="http://xn--www-7j2el56g21r8kpws2a.google.com">最终路由到www.google.com</a></li>
+<li>web 服务器用 HTTP 应答回应 ( 包括请求的页面)</li>
+<li>IP 数据报包含 HTTP 应答最后被路由到客户端</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97/" class="category-chain-item">2025春-互联网计算</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/" class="print-no-link">#计算机基础</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>互联网计算-06链路层和局域网</div>
+      <div>https://astronautbase.github.io/2025/08/25/互联网计算-06链路层和局域网/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-07%E6%97%A0%E7%BA%BF%E7%BD%91%E7%BB%9C%E5%92%8C%E7%A7%BB%E5%8A%A8%E7%BD%91%E7%BB%9C/" title="互联网计算-07无线网络和移动网络">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">互联网计算-07无线网络和移动网络</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/" title="互联网计算-05网络层：控制平面">
+                        <span class="hidden-mobile">互联网计算-05网络层：控制平面</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

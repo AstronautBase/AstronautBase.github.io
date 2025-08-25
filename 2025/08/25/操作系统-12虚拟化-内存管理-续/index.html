@@ -1,0 +1,1032 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="交换 如果没有⾜够的空间来容纳所有进程怎么办？  ⼀个进程可以被暂时换出内存到后备存储 然后在需要继续执⾏时再换回内存 进程的总物理内存空间可以超过物理内存  交换时间的主要部分是磁盘传输时间（与交换的内存量直接成正⽐）。  系统维护⼀个就绪队列，⾥⾯是内存镜像在磁盘上的准备运⾏的进程。 如果要放到 CPU 上的下⼀个进程不在内存中，需要换出⼀个进程并换⼊⽬标进程, 这时上下⽂切换时间可能会⾮常⾼">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统-12虚拟化-内存管理(续)">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="交换 如果没有⾜够的空间来容纳所有进程怎么办？  ⼀个进程可以被暂时换出内存到后备存储 然后在需要继续执⾏时再换回内存 进程的总物理内存空间可以超过物理内存  交换时间的主要部分是磁盘传输时间（与交换的内存量直接成正⽐）。  系统维护⼀个就绪队列，⾥⾯是内存镜像在磁盘上的准备运⾏的进程。 如果要放到 CPU 上的下⼀个进程不在内存中，需要换出⼀个进程并换⼊⽬标进程, 这时上下⽂切换时间可能会⾮常⾼">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060871.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060844.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060886-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060823-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060826.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060877.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060864.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060886-2.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060894.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060810.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060819.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060879.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060866-1.png">
+<meta property="article:published_time" content="2025-08-25T12:50:17.000Z">
+<meta property="article:modified_time" content="2025-08-25T12:52:45.048Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/2025060871.png">
+  
+  
+  
+  <title>操作系统-12虚拟化-内存管理(续) - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="操作系统-12虚拟化-内存管理(续)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 20:50" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">操作系统-12虚拟化-内存管理(续)</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p><strong>交换</strong><br>
+如果没有⾜够的空间来容纳所有进程怎么办？</p>
+<ul>
+<li>⼀个进程可以被暂时换出内存到后备存储</li>
+<li>然后在需要继续执⾏时再换回内存</li>
+<li>进程的总物理内存空间可以超过物理内存</li>
+</ul>
+<p>交换时间的主要部分是磁盘传输时间（与交换的内存量直接成正⽐）。</p>
+<ul>
+<li>系统维护⼀个就绪队列，⾥⾯是内存镜像在磁盘上的准备运⾏的进程。</li>
+<li>如果要放到 CPU 上的下⼀个进程不在内存中，需要换出⼀个进程并换⼊⽬标进程, 这时上下⽂切换时间可能会⾮常⾼。
+<ul>
+<li>⽐如⼀个 100MB 的进程交换到传输速率为 50MB/秒的硬盘上，那么交换出（或交换 ⼊）时间 = 2 秒</li>
+</ul>
+</li>
+<li>如果进程正在等待 I/O 操作（I/O 缓冲区在进程的地址空间中）？
+<ul>
+<li>交换会产⽣负⾯影响（I/O 失败或数据丢失）！⼀般涉及 I/O 操作的⻚需要被锁定在内存中，防⽌在操作完成前被换出。</li>
+</ul>
+</li>
+</ul>
+<p>标准交换在现代操作系统中不再使⽤，但变异版本很常⻅（例如，Linux 和 Windows）。</p>
+<ul>
+<li>交换通常是禁⽤的。</li>
+<li>当分配的内存超过阈值（当可⽤内存极低时）才会启动交换。</li>
+<li>⼀旦内存需求减少到低于阈值时，交换再次被禁⽤。</li>
+</ul>
+<p><img src="2025060871.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>如果单个进程本身超过物理内存？</p>
+<ul>
+<li>计算机可以运⾏⾮常⼤的单个程序
+<ul>
+<li>远远⼤于物理内存</li>
+<li>只要“活跃”的占⽤内存量适合物理内存，就可以运行</li>
+</ul>
+</li>
+<li>然⽽交换⽆法做到这⼀点
+<ul>
+<li>⼀个想法：不是所有内容都需要同时加载进内存！</li>
+</ul>
+</li>
+</ul>
+<p><em>部分内存驻留</em></p>
+<ul>
+<li>程序中的错误处理代码不会在每次运⾏时都被使⽤
+<ul>
+<li>因此不需要它在整个持续时间内占⽤内存</li>
+</ul>
+</li>
+<li>数组可能分配得⽐所需要的⼤
+<ul>
+<li><code>int players[MAX_INTEGER];</code></li>
+</ul>
+</li>
+<li>程序地快速启动
+<ul>
+<li>⽆需在运⾏之前加载整个程序</li>
+</ul>
+</li>
+</ul>
+<h2 id="虚拟内存">虚拟内存</h2>
+<p>每个进程都有⼀个⼤地址空间的幻觉。<br>
+⽀持多个并发运⾏的进程使⽤⼤虚拟地址空间：只将常⽤的⻚⾯保留在内存中 （此时内存可以看成是所有 pages 的⼀个 cache）<br>
+具备“部分”加载程序的执⾏能⼒</p>
+<ul>
+<li>程序不再受物理内存限制（可以运⾏⽆法完全放⼊物理内存的程序）</li>
+<li>每个程序在运⾏时占⽤更少的内存（可以同时运⾏更多的程序）</li>
+<li>加载或交换程序到内存中所需的 I/O 更少（每个程序启动更快）</li>
+</ul>
+<p>⽤<em>存在/不存在位</em>（在⻚表项中）来跟踪哪些⻚⾯存在于物理内存中。</p>
+<ul>
+<li>当程序引⽤其地址空间的⼀部分时：
+<ul>
+<li>如果⻚⾯在物理内存中，则直接进⾏地址转换</li>
+<li>如果不在，则发⽣缺⻚异常（Page Fault），操作系统被调⽤来处理该异常：
+<ul>
+<li>检测并将⻚⾯加载到内存中，然后重新执⾏指令 (引⽤该地址空间的指令)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>缺页异常</strong></p>
+<ul>
+<li>CPU 控制流传递</li>
+<li>提前注册缺⻚异常处理函数</li>
+</ul>
+<p><img src="2025060844.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>具体流程</em></p>
+<ol>
+<li>硬件陷⼊内核，进⾏ Context-Switch（将程序计数器保存在栈上，保存通⽤寄存器和其他易失性信息。）</li>
+<li>系统发现了这个事件是⼀个缺⻚异常，尝试确定所需的虚拟⻚⾯。</li>
+<li>⼀旦知道引发缺⻚异常的虚拟地址，系统检查地址是否有效，并且保护是否与访问⼀致。</li>
+<li>找到⼀个空闲（⼲净的）帧。
+<ol>
+<li>如果没有空闲帧，则运⾏⻚⾯置换以选择⼀个 victim (受害者)。</li>
+<li>如果所选帧是脏的，则将⻚⾯安排转移到磁盘，进⾏上下⽂切换，暂停引发异常的进程。</li>
+</ol>
+</li>
+<li>⼀旦帧变为⼲净状态，系统查找所需⻚⾯的磁盘地址，并安排磁盘操作将其调⼊（引发缺⻚异常的进程仍处于暂停状态）</li>
+<li>当磁盘中断指示⻚⾯已经到达时，更新⻚表，并将帧标记为正常状态</li>
+<li>将引发缺⻚异常的指令恢复到其原始状态，并重置程序计数器</li>
+<li>引发缺⻚异常的进程被调度，Context-Switch 回去</li>
+</ol>
+<p><em>性能</em>：</p>
+<ul>
+<li>处理缺⻚异常的三个主要活动：
+<ul>
+<li>服务中断：⼀般只需要⼏百条指令</li>
+<li>读取⻚⾯：需要⼤量时间</li>
+<li>恢复进程：需要少量时间</li>
+</ul>
+</li>
+<li>缺⻚错误率 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mo>=</mo><mi>p</mi><mo>&lt;</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0 &lt;= p &lt;= 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6835em;vertical-align:-0.0391em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>：进程在内存中发现缺⻚异常的速率。</li>
+<li>有效访问时间（Effective Access Time, EAT）:(1 − p) × 访存时间 + p × 缺⻚异常开销</li>
+</ul>
+<p><img src="2025060886-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="2025060823-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="页面置换">页面置换</h2>
+<p><em>何时将页面调入内存</em></p>
+<ul>
+<li>按需分⻚（Demand Paging） - 出现缺⻚异常后进⾏调入⻚⾯
+<ul>
+<li>最简单的⽅法</li>
+<li>为了提⾼效率，调入是异步进⾏的：
+<ul>
+<li>中断处理程序应快速响应 - 只需启动磁盘 I/O 并阻塞该进程，让其他进程运⾏。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>预取 (Prefetching)
+<ul>
+<li>猜测即将使⽤哪些⻚⾯，因此提前将其调⼊内存</li>
+<li>往往是基于历史的缺⻚记录来预测</li>
+</ul>
+</li>
+</ul>
+<p><em>如果没有空闲的帧会发生什么</em></p>
+<ul>
+<li>⻚⾯置换：找到内存中的⼀个⻚⾯，但实际上并未使⽤，将其换出。
+<ul>
+<li>选择⼀个受害者帧（victim frame）进⾏驱逐。</li>
+<li>将所需的⻚⾯调⼊（新）空闲帧。</li>
+</ul>
+</li>
+</ul>
+<p><em>当一个页面必须被换出时</em></p>
+<ul>
+<li>更新⻚表：找到所有引⽤旧⻚⾯的⻚表项（因为帧可以共享），并将每个设置为不可⻅</li>
+<li>移除任何 TLB 条⽬
+<ul>
+<li>TLB 关机：在多处理器系统中，必须从所有处理器的 TLB 中消除 TLB 条⽬</li>
+</ul>
+</li>
+<li>将⻚⾯写回磁盘（如果需要，⻚表项中的脏位）</li>
+<li>重新启动引发陷阱的指令：（需要备份指令）</li>
+</ul>
+<p><em>如果不想将某些页面换出</em></p>
+<ul>
+<li>将⻚⾯固定到内存中以锁定</li>
+<li>有时必须将⻚⾯锁定到内存中
+<ul>
+<li>总是将（部分）内核⻚⾯放⼊物理内存中</li>
+<li>⽤于从设备复制⽂件的⻚⾯必须锁定，以防⽌被选择⽤于驱逐（I/O）</li>
+<li>⼀个低优先级的进程交换⼊⼀个⻚⾯，然后⼀个⾼优先级的进程抢占并请求⼀个新的帧？</li>
+</ul>
+</li>
+<li>需要小心使用</li>
+</ul>
+<p><em>页面 buffering</em></p>
+<ul>
+<li>操作系统会等到内存完全满了吗？
+<ul>
+<li>保留⼀组空闲帧（Buffering）以确保在需要时总有可⽤的帧在合适的时候</li>
+</ul>
+</li>
+<li>此外有⼀个交换⻚⾯的守护进程（后台进程）定期运⾏（类似于调度程序）
+<ul>
+<li>如果空闲物理帧的数量 &lt; “低⽔位标记”，则换出⼀些⻚⾯，直到数量达到&quot;⾼⽔位标记&quot;</li>
+<li>系统会⼀次性换出许多⻚⾯，以从低⽔平达到⾼⽔平。
+<ul>
+<li>这样做是因为将⼤块数据写⼊磁盘更有效（批量传输）</li>
+<li>需要维护⼀个修改⻚⾯的列表，将⻚⾯写⼊其中并设置为⾮脏（Linux 中的 pdflush）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>⻚⾯交换的守护进程可以以低优先级调度</p>
+<ul>
+<li>利⽤空闲时间准备未来的⼯作</li>
+</ul>
+<p>Linux 交换守护进程是⼀个名为 kswapd 的进程</p>
+<p><strong>页面置换策略</strong><br>
+哪个帧应该被替换？<br>
+⽬标是实现最低的缺⻚异常率（尽量减少从磁盘获取⻚⾯的次数）。</p>
+<ul>
+<li>如果选择⼀个不常被使⽤的⻚⾯，系统性能会更好。</li>
+<li>如果删除⼀个频繁使⽤的⻚⾯，它可能很快就需要被重新调⼊。</li>
+</ul>
+<h3 id="First-In-First-Out-FIFO">First In First Out FIFO</h3>
+<p><img src="2025060826.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>Belady 异常：增加帧数反⽽可能会降低命中率（帧数越少，缺⻚异常越少）</p>
+<p><img src="2025060877.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>Belady’s Anomaly 会发⽣在任何⻚⾯替换算法中（⽐如随机替换），只要它不遵循“栈算法”属性（stack algorithm property）。</p>
+<ul>
+<li>之后的 LRU（最近最少使⽤）和 Optimal（最佳）算法始终遵循栈算法属性，因此它们永远不会受到 Belady’s Anomaly 的影响。</li>
+</ul>
+<p>栈算法属性确保当⻚⾯帧数量增加时，先前存在的⻚⾯集合始终是当⻚⾯帧更多时存在的⻚⾯集合的⼦集。换句话说，随着⻚⾯帧数的增加，先前存在的⻚ ⾯应始终保留在内存中。</p>
+<ul>
+<li>如果没有这个性质，则可能会导致先前存在于内存中但由于增加⻚⾯数反⽽ 被删除这个⻚⾯，如果正好这个⻚⾯是⼀个需要频繁使⽤的⻚⾯，那么…</li>
+</ul>
+<p><img src="2025060864.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="Least-Recently-Used-LRU">Least Recently Used LRU</h3>
+<p>替换那些在最⻓时间内没有被使⽤的⻚⾯</p>
+<ul>
+<li>使⽤历史⽽不是未来：很⻓时间没有被使⽤的⻚⾯可能会保持⻓时间未使⽤</li>
+<li>基于局部性原理</li>
+</ul>
+<p>为了跟踪哪些⻚⾯最近最少被使⽤（将每个⻚⾯的最后⼀次使⽤时间与之关联），操作系统必须在每次内存引⽤时进⾏⼀些计时⼯作。<br>
+计数器实现</p>
+<ul>
+<li>每个⻚⾯都有⼀个对应的计数器项。</li>
+<li>每次⻚⾯被引⽤时，通过硬件将时钟寄存器的值复制到计数器中。</li>
+<li>当需要更换⻚⾯时，查看计数器以找到最⼩的值</li>
+</ul>
+<p>-&gt;开销太大</p>
+<h3 id="近似-LRU">近似 LRU</h3>
+<p>通过引⽤位来近似 LRU（即⼆次机会算法，Second Chance）：寻找⼀个在最近的时钟周期内没有被引⽤的⽼⻚⾯。</p>
+<ul>
+<li>系统中每个⻚⾯有⼀个引⽤位（R）。</li>
+<li>每当引⽤⻚⾯（即读取或写⼊），引⽤位被设置为 1（由硬件完成）。</li>
+<li>如果要被替换的⻚⾯：
+<ul>
+<li>R = 1：将引⽤位设置为 0；将其放在 FIFO 队列的末尾；并检查下⼀个⻚⾯。</li>
+<li>R = 0：替换它。</li>
+</ul>
+</li>
+<li>如果所有⻚⾯都被引⽤，那么第⼆次机会等于 FIFO。</li>
+</ul>
+<p><em>二次机会算法</em><br>
+<img src="2025060886-2.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>Not Recently Used NRU 算法</em><br>
+<img src="2025060894.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>抖动</strong><br>
+<img src="2025060810.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060819.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>抖动（也叫颠簸）：⼀个进程花费所有时间在⻚⾯间进⾏交换（⼤多数引⽤ 导致缺⻚异常）</p>
+<p><strong>局部性原理</strong></p>
+<ul>
+<li>时间局部性（Temporal locality）：相同的内存位置在不久的将来会再次被访问。</li>
+<li>空间局部性（Spatial locality）：未来将会访问附近的内存位置。</li>
+<li>当⼀个进程执⾏时，它会从⼀个局部转移到另⼀个局部</li>
+</ul>
+<p><strong>工具集 Working Set 模型</strong><br>
+⼯作集（Working Set）：</p>
+<ul>
+<li>其在时间段 (t-x, t) 内使⽤的内存⻚集合也被视为其在未来 (下⼀个 x 时间内) 会访问的⻚集</li>
+<li>如果整个⼯作集都在内存中，那么进程将运⾏⽽不会引起太多缺⻚异常，直到它进⼊另⼀个执⾏阶段。</li>
+<li>如果可⽤内存太⼩，⽆法容纳整个⼯作集，则会发⽣抖动。</li>
+</ul>
+<p>All-or-nothing 模型</p>
+<ul>
+<li>进程⼯作集要不都在内存中，否则全都换出</li>
+<li>需要跟踪每个进程的⼯作集，并确保在运⾏之前将其加载到内存中。</li>
+<li>⼤⼤降低缺⻚异常率</li>
+</ul>
+<p><img src="2025060879.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>本地和全局策略</em><br>
+替换页帧是从全局（所有进程中）还是本地（只挑自己的页帧）？<br>
+本地⻚⾯置换：每个进程从其分配的帧集中选择受害者</p>
+<ul>
+<li>每个进程的帧数固定分配</li>
+<li>每个进程的性能更加⼀致</li>
+<li>但可能导致内存利⽤不⾜</li>
+</ul>
+<p>全局⻚⾯置换：从分配给任何进程的帧中选择受害者</p>
+<ul>
+<li>每个进程的帧数可变</li>
+<li>吞吐量更⼤，因此更为普遍</li>
+</ul>
+<p><strong>帧分配</strong><br>
+采⽤全局⻚⾯置换时，操作系统必须不断决定为每个进程分配的⻚⾯帧数：</p>
+<ul>
+<li>平均分配：为每个进程分配相等的份额。</li>
+<li>⽐例分配：根据进程⼤⼩进⾏分配（需要为每个进程分配⼀定数量的帧）。</li>
+<li>按照优先级分配（优先级⾼的）</li>
+</ul>
+<p>这些静态的帧数分配⽆法解决不断变化的动态需求<br>
+<img src="2025060866-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="Put-it-all-together">Put it all together</h2>
+<p><strong>操作系统对分页的支持</strong></p>
+<ul>
+<li>进程创建
+<ul>
+<li>确定程序和数据的⼤⼩并创建⻚表</li>
+<li>为⻚表分配空间并初始化</li>
+<li>为磁盘上的交换区域分配空间并初始化</li>
+<li>在进程表中记录有关⻚表和交换空间的信息</li>
+</ul>
+</li>
+<li>进程执行
+<ul>
+<li>为新进程重置内存管理单元（⻚表基址寄存器）</li>
+<li>上下⽂切换：清除 TLB（除⾮它是带有标记的）</li>
+<li>可选地，将进程的⼀些或所有⻚⾯调⼊</li>
+</ul>
+</li>
+<li>⻚⾯守护进程（Page Daemon）
+<ul>
+<li>⼤部分时间处于休眠状态，但定期唤醒以检查内存状态，并主动准备待驱逐的⻚⾯</li>
+</ul>
+</li>
+<li>缺⻚异常
+<ul>
+<li>找到所需的⻚，并在磁盘上定位该⻚</li>
+<li>找到⼀个可⽤的物理⻚帧来放置新⻚帧（必要时替换旧⻚帧）</li>
+<li>将所需的⻚⾯读⼊该物理⻚帧</li>
+<li>备份程序计数器以再次执⾏指令</li>
+</ul>
+</li>
+<li>进程终⽌
+<ul>
+<li>释放⻚表、⻚帧和交换空间</li>
+<li>共享⻚帧只能在使⽤它们的最后⼀个进程终⽌时释放</li>
+</ul>
+</li>
+</ul>
+<p>程序优化</p>
+<ul>
+<li>局部性取决于数据结构
+<ul>
+<li>数字鼓励顺序访问
+<ul>
+<li>多次引用同一页</li>
+<li>可预测的访问下一个页面</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>编译器和链接器也能帮忙
+<ul>
+<li>不要把一个函数分散到两页上</li>
+</ul>
+</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>内存的抽象</p>
+<ul>
+<li>屏蔽物理的局限（无线空间、连续、独享）</li>
+</ul>
+<p>实现机制：地址翻译</p>
+<ul>
+<li>需要硬件和 OS 配合</li>
+</ul>
+<p>底层内存的管理：连续分配、分段、分页</p>
+<ul>
+<li>利用 TLB 缓存</li>
+</ul>
+<p>实现虚拟内存的工程问题</p>
+<ul>
+<li>换页、工具集</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">2025春-操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>操作系统-12虚拟化-内存管理(续)</div>
+      <div>https://astronautbase.github.io/2025/08/25/操作系统-12虚拟化-内存管理-续/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-13%E6%8C%81%E4%B9%85%E5%8C%96-%E8%AE%BE%E5%A4%87%E7%AE%A1%E7%90%86/" title="操作系统-13持久化-设备管理">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">操作系统-13持久化-设备管理</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="操作系统-11虚拟化-内存管理">
+                        <span class="hidden-mobile">操作系统-11虚拟化-内存管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

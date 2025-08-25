@@ -1,0 +1,782 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="临界区 临界区 critical section：访问共享资源的一段代码，资源通常是一个变量或数据结构 竞态条件 race condition：出现在多个执行线程大致同时进入临界区时，它们都试图更新共享的数据结构，导致非预期的结果  当程序含有一个或多个竞态条件，程序的输出会因运行而异，具体取决于哪些线程在何时运行，因此结果是不确定的 non-derministic   如何设计机制使得临界区避免">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统-04并发-互斥">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="临界区 临界区 critical section：访问共享资源的一段代码，资源通常是一个变量或数据结构 竞态条件 race condition：出现在多个执行线程大致同时进入临界区时，它们都试图更新共享的数据结构，导致非预期的结果  当程序含有一个或多个竞态条件，程序的输出会因运行而异，具体取决于哪些线程在何时运行，因此结果是不确定的 non-derministic   如何设计机制使得临界区避免">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031418.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031400.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031497.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031498.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031474.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031425.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031439.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031486.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031464.png">
+<meta property="article:published_time" content="2025-08-25T12:03:05.000Z">
+<meta property="article:modified_time" content="2025-08-25T12:05:33.423Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-04%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5/2025031418.png">
+  
+  
+  
+  <title>操作系统-04并发-互斥 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="操作系统-04并发-互斥"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 20:03" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">操作系统-04并发-互斥</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="临界区">临界区</h2>
+<p><strong>临界区</strong> critical section：访问共享资源的一段代码，资源通常是一个变量或数据结构</p>
+<p><strong>竞态条件</strong> race condition：出现在多个执行线程大致同时进入临界区时，它们都试图更新共享的数据结构，导致非预期的结果</p>
+<ul>
+<li>当程序含有一个或多个竞态条件，程序的输出会因运行而异，具体取决于哪些线程在何时运行，因此结果是不确定的 non-derministic</li>
+</ul>
+<blockquote>
+<p>如何设计机制使得临界区避免出现竞态条件是“并发”的重要主题！</p>
+</blockquote>
+<p>对于⼀个<em>运行</em>程序 (尤其是并发程序) 的两个重要属性：</p>
+<ul>
+<li><strong>安全性</strong>：“没有坏事发生”
+<ul>
+<li>要求执行中的<em>任何</em>有限步骤内都保持这个性质</li>
+</ul>
+</li>
+<li><strong>活性</strong>：“好事终将发生”
+<ul>
+<li>要求只要在<em>最终</em>能满足要求即可，一个隐含的要求是执行中不能发生“不可挽回的步骤”</li>
+</ul>
+</li>
+</ul>
+<p>临界区的解决方案需满足的条件：</p>
+<ol>
+<li><strong>互斥</strong> Mutual Exclusion：临界区中最多只能有一个线程 Safety</li>
+<li><strong>行进</strong> Progress：如果当前临界区内没有线程，并且有线程想要进⼊临界区，那么最终某个想要进⼊临界区的线程会进⼊该临界区 (liveness)</li>
+<li><strong>有界等待</strong> bounded waiting：如果某个线程想要进⼊临界区，那么其等待的期限有限（期间其他线程进⼊该临界区次数有上限），不可⼀直排队等待 (Fairness/No starvation)</li>
+</ol>
+<p>除此之外，还应关心<strong>性能</strong> performance:</p>
+<ul>
+<li><em>进入</em>和<em>退出</em>该临界区的两个操作应该相对于在该临界区内做的计算而言尽可能的小</li>
+</ul>
+<blockquote>
+<p>经验法则 (Rule of thumb)<br>
+当设计并发算法时，优先考虑安全性！(but don’t forget liveness and performance).</p>
+</blockquote>
+<h2 id="锁-Locks">锁 Locks</h2>
+<p>锁是⼀个变量，其保存了锁在某⼀时刻的状态。</p>
+<ul>
+<li>要么是可用的（available，或 unlocked，或 free），表示没有线程持有锁</li>
+<li>要么是被占用的（acquired，或 locked，或 held），表示有⼀个线程持有锁，正处于临界区。</li>
+</ul>
+<p>其提供两个配对操作：</p>
+<ul>
+<li><code>lock()/acquire()</code>: 调用 lock() 或 acquire() 尝试获取锁，如果没有其他线程持有锁， 该线程会获得锁，进入临界区，否则 (该锁已经被持有了) 不会返回 (该线程会卡在那里)</li>
+<li><code>unlock()/release()</code>: 调用 unlock() 或 release()，锁就变成可用了（可被获得）, 之前如果有因获得锁操作没成功卡在那的线程，那么其中⼀个会进入临界区</li>
+</ul>
+<blockquote>
+<p>锁为程序员提供了最⼩程度的调度控制，通过给临界区加锁，保证临界区内只有⼀个活跃变量（互斥）。</p>
+</blockquote>
+<h3 id="尝试-1：关中断">尝试 1：关中断</h3>
+<p>题外话：NMI (Non-Maskable Interrupts)<br>
+不是所有中断都是可以被屏蔽的，处理器有<em>不可屏蔽中断</em> (Non-Maskable Interrupts)</p>
+<ul>
+<li>主要是为了一些不可处理或通知一些不可恢复的错误
+<ul>
+<li>如内部芯片系统错误、系统数据损坏等</li>
+</ul>
+</li>
+<li>如果操作系统的中断处理程序崩掉了（死循环），然后此时又在关中断，那么利用 NMI 可以监控这个错误，并给出处理（如重启计算机）
+<ul>
+<li>可行方法：设置硬件定时触发 NMI，操作系统（正常运行下）定时复位定时器以使得 NMI 不被触发，但操作系统⼀旦不正常了，timeout 会触发 NMI</li>
+</ul>
+</li>
+</ul>
+<p><strong>问题：</strong></p>
+<ol>
+<li>临界区的代码死循环了-&gt;整个系统也卡死了</li>
+<li>中断关闭时间过长会导致很多其他重要的外界响应丢失（比如错过了磁盘 I/O 的完成事件）</li>
+<li>关中断是特权指令，用户态的应用是无法执行的，只有操作系统有这个权限</li>
+<li>多处理器无效（单处理器是可行的）
+<ol>
+<li>每个处理器有独立的寄存器组</li>
+<li>中断是每个处理器内部状态</li>
+</ol>
+</li>
+</ol>
+<h3 id="尝试-2：通过软件-Lock-标志">尝试 2：通过软件 (Lock 标志)</h3>
+<p>使用⼀个标志来表达此时锁的状态，比如：为 1 就是已被占用，为 0 就是可用的。对应的 lock() 和 unlock()</p>
+<p>——完全存在两个线程同时发现 flag 为 0，然后都进入临界区的可能 (not safe)</p>
+<h3 id="尝试-3：互斥的-test">尝试 3：互斥的 test</h3>
+<p><img src="2025031418.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<ul>
+<li>在内存顺序一致性模型下成立</li>
+<li>该方法让每个线程“严格轮转”</li>
+</ul>
+<p><strong>问题</strong>：一个线程能否得到一个锁完全依赖于另外一个线程是否先进入了临界区，违背了 liveness 性质</p>
+<h3 id="Peterson-算法">Peterson 算法</h3>
+<p><img src="2025031400.png" srcset="/img/loading.gif" lazyload alt=""><br>
+在标记后就将 flag 轮转到下一位，可以保证 flag==self 两个线程结果不一样<br>
+证明：</p>
+<p><em>Peterson 算法能够保持互斥性</em></p>
+<p><img src="2025031497.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>最后进入的一定是 T2，所以前一个状态是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mn>4</mn><mo separator="true">,</mo><mn>3</mn><mo separator="true">,</mo><mn>1</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[0,4,3,1,1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">4</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span><br>
+<img src="2025031498.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>两种前驱假设都不成立</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mn>3</mn><mo separator="true">,</mo><mn>3</mn><mo separator="true">,</mo><mn>1</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[0,3,3,1,1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span>：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>=</mo><mo>=</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">0==i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">==</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 也为 True，无法进入临界区</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">[</mo><mo stretchy="false">?</mo><mo separator="true">,</mo><mn>4</mn><mo separator="true">,</mo><mn>2</mn><mo separator="true">,</mo><mn>1</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">[?,4,2,1,1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mclose">?</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">4</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span>：T2 的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mi>l</mi><mi>a</mi><mi>g</mi><mo>=</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">flag=i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 会将 flag 置为 1，不满足下一步的 flag=0</li>
+</ul>
+<p><img src="2025031474.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>保持“行进”</em><br>
+<img src="2025031425.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>保持“有界等待”</em><br>
+<img src="2025031439.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<blockquote>
+<p>模型检测 Model checking</p>
+<p>Model checking is a method for formally verifying finite-state systems</p>
+</blockquote>
+<p>现实的 load 和 store 都不是原子的，甚至两个线程同⼀刻读的 flag 都不⼀致。 因此现实架构上的 peterson 算法其实是错误的。</p>
+<blockquote>
+<p>刚刚的证明都基于 SC 的情况。</p>
+</blockquote>
+<h2 id="硬件支持的锁">硬件支持的锁</h2>
+<p><img src="2025031486.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs sqf"><span class="hljs-comment">// cmpxchg做的事：</span><br><span class="hljs-keyword">if</span> <span class="hljs-built_in">flag</span>==expected:<br>	<span class="hljs-built_in">flag</span> = <span class="hljs-number">1</span><br><span class="hljs-keyword">else</span>:<br>	expected = <span class="hljs-built_in">flag</span><br></code></pre></td></tr></table></figure>
+<p><strong>自旋锁的实现</strong> Spin Lock<br>
+<img src="2025031464.png" srcset="/img/loading.gif" lazyload alt=""></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">2025春-操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>操作系统-04并发-互斥</div>
+      <div>https://astronautbase.github.io/2025/08/25/操作系统-04并发-互斥/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-05%E5%B9%B6%E5%8F%91-%E4%BA%92%E6%96%A5-%E8%BF%9B%E9%98%B6/" title="操作系统-05并发-互斥(进阶)">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">操作系统-05并发-互斥(进阶)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-03%E5%B9%B6%E5%8F%91-%E5%A4%9A%E5%A4%84%E7%90%86%E5%99%A8%E7%BC%96%E7%A8%8B/" title="操作系统-03并发-多处理器编程">
+                        <span class="hidden-mobile">操作系统-03并发-多处理器编程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

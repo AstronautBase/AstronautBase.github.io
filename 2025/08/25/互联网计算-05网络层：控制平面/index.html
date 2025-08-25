@@ -1,0 +1,1063 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="引入 网络层功能：  转发: 将分组从路由器的一个输入端口移到合适的输出端口——数据平面 路由: 确定分组从源到目标的路径——控制平面  2 种构建网络控制平面功能的方法:  每个路由器控制功能实现（传统） 逻辑上集中的控制功能实现 (software defined networking)  SDN 方式：逻辑上集中的控制平面  路由协议 路由:按照某种指标 (传输延迟, 所经过的站点数目等)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="互联网计算-05网络层：控制平面">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="引入 网络层功能：  转发: 将分组从路由器的一个输入端口移到合适的输出端口——数据平面 路由: 确定分组从源到目标的路径——控制平面  2 种构建网络控制平面功能的方法:  每个路由器控制功能实现（传统） 逻辑上集中的控制功能实现 (software defined networking)  SDN 方式：逻辑上集中的控制平面  路由协议 路由:按照某种指标 (传输延迟, 所经过的站点数目等)">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060402-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060463.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060408.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060412.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060433.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060404.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060496.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060591.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060593.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060501.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060543.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060575.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060520.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060588.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060577.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060597.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060588-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060577-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060516.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060553.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060547.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060527.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060529.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060516-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060574.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060596.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060531.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060512.png">
+<meta property="article:published_time" content="2025-08-25T08:43:50.000Z">
+<meta property="article:modified_time" content="2025-08-25T08:54:21.851Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="计算机基础">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/2025060402-1.png">
+  
+  
+  
+  <title>互联网计算-05网络层：控制平面 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="互联网计算-05网络层：控制平面"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 16:43" pubdate>
+          2025年8月25日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">互联网计算-05网络层：控制平面</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="引入">引入</h2>
+<p><em>网络层功能：</em></p>
+<ul>
+<li>转发: 将分组从路由器的一个输入端口移到合适的输出端口——数据平面</li>
+<li>路由: 确定分组从源到目标的路径——控制平面</li>
+</ul>
+<p>2 种构建网络控制平面功能的方法:</p>
+<ul>
+<li>每个路由器控制功能实现（传统）</li>
+<li>逻辑上集中的控制功能实现 (software defined networking)</li>
+</ul>
+<p>SDN 方式：逻辑上集中的控制平面</p>
+<p><img src="2025060402-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="路由协议">路由协议</h2>
+<p>路由:按照某种指标 (传输延迟, 所经过的站点数目等) 找到一条从源节点到目标节点的较好路径</p>
+<p><em>网络到网络</em>的路由= 路由器-路由器之间路由</p>
+<ul>
+<li>网络对应的路由器到其他网络对应的路由器的路由</li>
+<li>在一个网络中：<em>路由器-主机</em>之间的通信，链路层解决</li>
+<li>到了这个路由器就是到了这个网络</li>
+</ul>
+<p>图抽象：边和路径的代价<br>
+<img src="2025060463.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>Dijkstra’s link-state routing algorithm</strong><br>
+<img src="2025060408.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060412.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>距离矢量路由选择 (distance vector routing)</p>
+<p>Bellman-Ford BF<br>
+<img src="2025060433.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060404.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060496.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="Intra-ISP-routing-OSPF">Intra-ISP routing: OSPF</h2>
+<p><em>实现路由可扩展性</em><br>
+<img src="2025060591.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>互联网的可扩展路由方法：</p>
+<ul>
+<li>将路由器聚合为称为“自治系统”（AS）（也称为“域”）的区域</li>
+</ul>
+<p>AS 内部（又名“域内”）：同一 AS 内路由器之间的路由（“网络”）</p>
+<ul>
+<li>AS 内所有路由器必须运行<em>相同的域内协议</em></li>
+<li>不同的 AS 内的路由器可以运行不同的域内路由协议</li>
+<li>网关路由：位于其自身 AS 的边缘，具有到其它 AS 路由器的链路</li>
+</ul>
+<p>AS 间（又名“域间”）：AS 之间的路由</p>
+<ul>
+<li>网关执行域间路由（以及域内路由）</li>
+</ul>
+<p>互联 ASes<br>
+<img src="2025060593.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>跨 AS 路由：在域内转发中扮演的角色<br>
+<img src="2025060501.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>Open Shortest Path First</strong></p>
+<ul>
+<li>“open”：标准可公开获得</li>
+<li>classic link-state：
+<ul>
+<li>LS 分组在网络中（一个 AS 内部）分发</li>
+<li>全局网络拓扑、代价在每一个节点中都保持</li>
+<li>每个路由器拥有完整的拓扑结构，使用 Dijkstra 算法计算转发表</li>
+</ul>
+</li>
+<li>OSPF 通告信息中携带：<em>每一个邻居路由器一个表项</em></li>
+<li>通告信息会传遍 AS（通过泛洪）
+<ul>
+<li>在 IP 数据报上直接传送 OSPF 报文（而不是通过 UDP 和 TCP）</li>
+</ul>
+</li>
+</ul>
+<p><strong>层次性的 OSPF 路由</strong></p>
+<p>2 个级别的层次性：本地、骨干</p>
+<ul>
+<li>链路状态通告仅仅在本地区域 Area 范围内进行</li>
+<li>每一个节点拥有本地区域的拓扑信息
+<ul>
+<li>关于其它区域，知道去它的方向，通过区域边界路由（最短路径）</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060543.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<ul>
+<li>区域边界路由器：“汇总（聚集）”到自己区域内网络的距离，向其它区域边界路由器通告</li>
+<li>骨干路由器：仅仅在骨干区域内。运行 OSPF 路由</li>
+<li>边界路由器：连接其它的 ASes</li>
+</ul>
+<h2 id="ISP-之间的路由选择：BGP">ISP 之间的路由选择：BGP</h2>
+<p><strong>Border Gateway Protocol</strong>：自治区域间路由协议“事实上的”标准</p>
+<ul>
+<li>“将互联网各个 AS 粘在一起的胶水”</li>
+</ul>
+<p>允许子网向互联网其它网络通告“我在这里”<br>
+BGP 提供个每个 AS 以下方法：</p>
+<ul>
+<li>eBGP：从相邻的 ASes 获得<em>子网可达信息</em></li>
+<li>iBGP：将获得的子网可达信息传遍到 AS 内部所有路由器</li>
+<li>根据子网可达信息和策略来决定到达子网的“好”路径</li>
+</ul>
+<p><img src="2025060575.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>BGP 基础</strong><br>
+BGP 会话：2 个 BGP 路由器 (“peers”) 在一个半永久的 TCP 连接上交换 BGP 报文</p>
+<ul>
+<li>通告向不同目标子网前缀的“路径”（BGP 是一个“路径矢量”协议）</li>
+</ul>
+<p><img src="2025060520.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>路径属性 &amp; BGP 路由</em><br>
+当通告一个子网前缀时，通告包括 BGP 属性</p>
+<ul>
+<li>prefix + attribute = “route”</li>
+</ul>
+<p>2 个重要属性：</p>
+<ul>
+<li>AS-PATH：前缀的通告所经过的 AS 列表
+<ul>
+<li>检测环路：多路径选择</li>
+<li>在向其它 AS 转发时，需要将自己的 AS 号加到路径上</li>
+</ul>
+</li>
+<li>NEXT-HOP：从当前 AS 到下一跳 AS 有多个链路，在 NEXT-HOP 属性中，告诉对方通过哪个 I 转发</li>
+</ul>
+<p>基于策略的路由：</p>
+<ul>
+<li>当一个网关路由器接收到了一个路由通告，使用输入策略来接收或过滤</li>
+<li>策略也决定了是否向它别的邻居通告收到这个路由信息</li>
+</ul>
+<p><strong>BGP 路径通告</strong><br>
+<img src="2025060588.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<ol>
+<li>路由器 AS2.2c 从 AS3.3a 接收到的 AS3, X 路由通告 (通过 eBGP)</li>
+<li>基于 AS2 的输入策略，AS2.2c 决定接收 AS3, X 的通告，而且通过 iBGP 向 AS2 的所有路由器进行通告</li>
+<li>基于 AS2 的策略，AS2 路由器 2a 通过 eBGP 向 AS1.1c 路由器通告 <em>AS2, AS3, X</em> 路由信息
+<ol>
+<li>路径上加上了 AS2 自己作为 AS 序列的一跳</li>
+</ol>
+</li>
+</ol>
+<p><img src="2025060577.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>网关路由器可能获取有关一个子网 X 的多条路径，从多个 eBGP 会话上：</p>
+<ul>
+<li>AS1 网关路由器 1c 从 2a 学习到路径： AS2, AS3, X</li>
+<li>AS1 网关路由器 1c 从 3a 处学习到路径 AS3, X</li>
+<li>基于策略，AS1 路由器 1c 选择了路径：AS3, X，而且通过 iBGP 告诉所有 AS1 内部的路由器</li>
+</ul>
+<p><strong>转发表表项</strong><br>
+<img src="2025060597.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>BGP 路径选择</strong><br>
+路由器可能获得一个网络前缀的多个路径，路由器必须进行路径的选择，路由选择可以基于：</p>
+<ul>
+<li>本地偏好值属性: 偏好策略决定</li>
+<li>最短 AS-PATH ：AS 的跳数</li>
+<li>最近的 NEXT-HOP 路由器: 热土豆路由</li>
+<li>附加的判据：使用 BGP 标示</li>
+</ul>
+<p>一个前缀对应着多种路径，采用消除规则直到留下一条路径</p>
+<p><em>热土豆路由</em><br>
+<img src="2025060588-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>BGP：通过路径通告执行策略</em><br>
+<img src="2025060577-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>假设一个 ISP 只想路由流量到/去往它的客户网络 (不想承载其他 ISPs 之间的流量，即不通告：不是去往我的客户，也不是来自我的客户)</p>
+<ul>
+<li>
+<p>A 向 B 和 C 通告路径 Aw</p>
+</li>
+<li>
+<p>B 选择不向 C 通告 BAw：</p>
+<ul>
+<li>B 从 CBAw 的路由上无法获得收益，因为 C, A, w 都不是 B 的客户</li>
+<li>C 从而无法获知 CBAw 路径的存在：每个 ISP 感知到的网络和真实不一致</li>
+</ul>
+</li>
+<li>
+<p>C 可能会通过 CAw (而不是使用 B) 最终路由到 w</p>
+</li>
+<li>
+<p>A, B, C 是提供商网络：</p>
+</li>
+<li>
+<p>X, W, Y 是桩网络（stub networks）或者叫端网络</p>
+</li>
+<li>
+<p>X 是双重接入的，多宿桩网络，接入了 2 个网络</p>
+</li>
+<li>
+<p>策略强制让 X:</p>
+<ul>
+<li>X 不想路由从 B 通过 X 到 C 的分组</li>
+<li>因而 X 就不通告给 B，它实际上可以路由到 C</li>
+</ul>
+</li>
+</ul>
+<p><em>为什么内部网关协议和外部网关协议如此不同?</em></p>
+<p>策略：</p>
+<ul>
+<li>Inter-AS: 管理员需要控制通信路径，谁在使用它的网络进行数据传输</li>
+<li>Intra-AS: 一个管理者，所以无需策略;
+<ul>
+<li>AS 内部的各子网的主机尽可能地利用资源进行快速路由</li>
+</ul>
+</li>
+</ul>
+<p>规模：</p>
+<ul>
+<li>AS 间路由必须考虑规模问题，以便支持全网的数据转发</li>
+<li>AS 内部路由规模不是一个大的问题
+<ul>
+<li>如果 AS 太大，可将此 AS 分成小的 AS ；规模可控</li>
+<li>AS 之间只不过多了一个点而已</li>
+<li>或者 AS 内部路由支持层次性，层次性路由节约了表空间, 降低了更新的数据流量</li>
+</ul>
+</li>
+</ul>
+<p>性能：</p>
+<ul>
+<li>Intra-AS: 关注性能</li>
+<li>Inter-AS: 策略可能比性能更重要</li>
+</ul>
+<h2 id="SDN-控制平面">SDN 控制平面</h2>
+<p>传统方式：在每一个路由器中的单独路由器算法元件，在控制平面进行交互</p>
+<p>SDN 方式：一个不同的（通常是远程的）控制器与本地控制代理（CAs） 交互</p>
+<p><img src="2025060516.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>为什么需要一个逻辑上集中的控制平面？</p>
+<ul>
+<li>网络管理更加容易：避免路由器的错误配置，对于通信流的弹性更好</li>
+<li>基于流表的转发（回顾一下 OpenFlow API)，允许“可编程”的路由器
+<ul>
+<li>集中式“编程”更加容易：集中计算流表然后分发</li>
+<li>传统方式分布式“编程”困难：在每个单独的路由器上分别运行分布式的算法，得到转发表（部署和升级代价低）</li>
+</ul>
+</li>
+<li>控制平面的开放实现（非私有）
+<ul>
+<li>新的竞争生态</li>
+</ul>
+</li>
+</ul>
+<p><strong>流量工程</strong><br>
+传统路由比较困难：<br>
+<img src="2025060553.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>Q: 网管如果需要 u 到 z 的流量走 uvwz, x 到 z 的流量走 xwyz，怎么办？</p>
+<ul>
+<li>A: 需要定义链路的代价，流量路由算法以此运算（ IP 路由面向目标，无法操作） (或者需要新的路由算法)!</li>
+</ul>
+<p>Q: 如果网管需要将 u 到 z 的流量分成 2 路：uvwz 和 uxyz ( 负载均衡)，怎么办?（ IP 路由面向目标）</p>
+<ul>
+<li>A: 无法完成 (在原有体系下只有使用新的路由选择算法 ，而在全网部署新的路由算法是个大的事情)</li>
+</ul>
+<p>Q: 如果需要 w 对蓝色的和红色的流量采用不同的路由，怎么办？</p>
+<ul>
+<li>A: 无法操作 (基于目标的转发，采用 LS, DV 路由)</li>
+</ul>
+<p><strong>SDN 特点</strong><br>
+<img src="2025060547.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="Software-defined-networking-SDN">Software defined networking (SDN)</h3>
+<p><em>数据平面交换机</em></p>
+<ul>
+<li>快速，简单，商业化交换设备采用硬件实现通用转发功能</li>
+<li>流表被控制器计算和安装</li>
+<li>基于南向 API（例如 OpenFlow ），SDN 控制器访问基于流的交换机
+<ul>
+<li>定义了哪些可以被控制哪些不能</li>
+</ul>
+</li>
+<li>也定义了和控制器的协议 (e.g., OpenFlow)</li>
+</ul>
+<p><em>SDN 控制器（网络 OS）</em></p>
+<ul>
+<li>维护网络状态信息</li>
+<li>通过上面的北向 API 和网络控制应用交互</li>
+<li>通过下面的南向 API 和网络交换机交互</li>
+<li>逻辑上集中，但是在实现上通常由于性能、可扩展性、容错性以及鲁棒性采用分布式方法实现</li>
+</ul>
+<p><em>网络控制应用</em></p>
+<ul>
+<li>控制的大脑： 采用下层提供的服务（SDN 控制器提供的 API)，实现网络功能
+<ul>
+<li>路由器交换机</li>
+<li>接入控制防火墙</li>
+<li>负载均衡</li>
+<li>其他功能</li>
+</ul>
+</li>
+<li>非绑定：可以被第三方提供 ，与控制器厂商以通常上不同，与分组交换机厂商也可以不同</li>
+</ul>
+<p><img src="2025060527.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="OpenFlow-协议">OpenFlow 协议</h3>
+<ul>
+<li>控制器和 SDN 交换机交互的协议</li>
+<li>采用 TCP 来交换报文</li>
+<li>3 种 OpenFlow 报文类型
+<ul>
+<li>控制器&gt;交换机</li>
+<li>异步（交换机&gt;控制器 ）</li>
+<li>对称 (misc)</li>
+</ul>
+</li>
+</ul>
+<p><em>控制器-交换机 报文</em>：</p>
+<ul>
+<li>特性：控制器查询交换机特性，交换机应答</li>
+<li>配置：交换机查询/设置交换机的配置参数</li>
+<li>修改状态：增加删除修改 OpenFlow 表中的流表</li>
+<li>packet-out：控制器可以将分组通过特定的端口发出</li>
+<li>分组进入: 将分组（和它的控制） 传给控制器，见来自控制器的 packet-out 报文</li>
+<li>流移除: 在交换机上删除流表项</li>
+<li>端口状态: 通告控制器端口的变化</li>
+</ul>
+<p>幸运的是, 网络管理员不需要直接通过创建/发送流表来编程交换机，而是采用在控制器上的 app 自动运算和配置</p>
+<p><img src="2025060529.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<ol>
+<li>链路状态路由 app 和 SDN 控制器中流表计算元件交互，计算出新的所需流表</li>
+<li>控制器采用 OpenFlow 在交换机上安装新的需要更新的流表</li>
+</ol>
+<h2 id="ICMP-Internet-Control-Message-Protocol">ICMP: Internet Control Message Protocol</h2>
+<p>由主机、路由器、网关用于传达网络层控制信息</p>
+<ul>
+<li>错误报告：主机不可到达、网络、端口、协议</li>
+<li>Echo 请求和回复（ping）</li>
+</ul>
+<p>ICMP 处在网络层，但是是在 IP 协议的上面</p>
+<ul>
+<li>ICMP 消息由 <em>IP 数据报</em>承载</li>
+</ul>
+<p>ICMP 报文:</p>
+<ul>
+<li>类型</li>
+<li>编码</li>
+<li>加上 IP 数据报的头 8B
+<ul>
+<li>第一个导致该 ICMP 报文的 IP 数据报</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060516-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="网络管理，配置">网络管理，配置</h2>
+<p>什么是网络管理？</p>
+<p>“网络管理”包括了硬件、软件和人类元素的设置，综合和协调，以便监测，测试，轮询，配置，分析，评价和控制网络和网元资源，用合理的成本满足实时性，运行能和服务质量的要求</p>
+<p><img src="2025060574.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="SNMP-协议">SNMP 协议</h3>
+<p>Simple Network Management Protocol：用于管理和监控网络设备（如路由器、交换机、服务器等）的标准化协议</p>
+<ul>
+<li>应用层协议 基于 UDP</li>
+</ul>
+<p>两种模式：<br>
+<img src="2025060596.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>报文类型：<br>
+<img src="2025060531.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>NETCONF</strong><br>
+概述</p>
+<ul>
+<li>目标：主动管理/配置全网的设备</li>
+<li>在管理服务器和受管网络设备之间运行
+<ul>
+<li>操作：获取、设置、修改、激活配置</li>
+<li>在多台设备上执行原子提交操作</li>
+<li>查询运行时数据和统计信息</li>
+<li>订阅来自设备的通知</li>
+</ul>
+</li>
+<li>远程过程调用（RPC）范式
+<ul>
+<li>NETCONF 协议消息以 XML 编码</li>
+<li>通过安全的可靠传输协议（例如 TLS）交换</li>
+</ul>
+</li>
+</ul>
+<p>初始化、交换、关闭</p>
+<p><img src="2025060512.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>YANG</em></p>
+<ul>
+<li>用于指定 NETCONF 网络管理数据结构、语法、语义的数据建模语言
+<ul>
+<li>内置数据类型，如 SMI</li>
+</ul>
+</li>
+<li>从 YANG 描述中可以生成描述设备、能力的 XML 文档</li>
+<li>可以表达必须由有效 NETCONF 配置满足的数据约束
+<ul>
+<li>确保 NETCONF 配置满足正确性、一致性约束</li>
+</ul>
+</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97/" class="category-chain-item">2025春-互联网计算</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/" class="print-no-link">#计算机基础</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>互联网计算-05网络层：控制平面</div>
+      <div>https://astronautbase.github.io/2025/08/25/互联网计算-05网络层：控制平面/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-06%E9%93%BE%E8%B7%AF%E5%B1%82%E5%92%8C%E5%B1%80%E5%9F%9F%E7%BD%91/" title="互联网计算-06链路层和局域网">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">互联网计算-06链路层和局域网</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/" title="互联网计算-04网络层：数据平面">
+                        <span class="hidden-mobile">互联网计算-04网络层：数据平面</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

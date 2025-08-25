@@ -1,0 +1,1561 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1NF 横平竖直的表 2NF 没有非主属性对主属性的部分函数依赖 3NF 没有非主属性对主属性的传递函数依赖 BCNF 两种判别：1. 关系中还有左边的属性不是候选码 2. 主属性内部没有部分&#x2F;传递依赖 绪论 数据库：长期储存在计算机内、有组织的、可共享的大量数据的集合。 数据库管理系统：位于用户（应用程序）与数据库（操作系统）之间的一层数据管理软件，是一种用于管理数据库的大型系统软件。  数据定">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据管理基础-汇总">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="1NF 横平竖直的表 2NF 没有非主属性对主属性的部分函数依赖 3NF 没有非主属性对主属性的传递函数依赖 BCNF 两种判别：1. 关系中还有左边的属性不是候选码 2. 主属性内部没有部分&#x2F;传递依赖 绪论 数据库：长期储存在计算机内、有组织的、可共享的大量数据的集合。 数据库管理系统：位于用户（应用程序）与数据库（操作系统）之间的一层数据管理软件，是一种用于管理数据库的大型系统软件。  数据定">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060544.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060562.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060568.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060688.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060633.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060693.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060694.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060697.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060607.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060646.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060644.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060628.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060680.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060633-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060683.png">
+<meta property="article:published_time" content="2025-08-25T11:09:49.000Z">
+<meta property="article:modified_time" content="2025-08-25T11:18:38.886Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80-%E6%B1%87%E6%80%BB/2025060544.png">
+  
+  
+  
+  <title>数据管理基础-汇总 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="数据管理基础-汇总"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 19:09" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          77 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">数据管理基础-汇总</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>1NF 横平竖直的表<br>
+2NF 没有非主属性对主属性的部分函数依赖<br>
+3NF 没有非主属性对主属性的传递函数依赖<br>
+BCNF 两种判别：1. 关系中还有左边的属性不是候选码 2. 主属性内部没有部分/传递依赖</p>
+<p><strong>绪论</strong><br>
+数据库：长期储存在计算机内、有组织的、可共享的大量数据的集合。<br>
+数据库管理系统：位于用户（应用程序）与数据库（操作系统）之间的一层数据管理软件，是一种用于管理数据库的大型系统软件。</p>
+<ul>
+<li>数据定义功能</li>
+<li>数据组织、存储和管理</li>
+<li>数据操纵功能</li>
+<li>数据库的事务管理和运行管理</li>
+<li>数据库的建立和维护功能</li>
+</ul>
+<p>数据库系统：由数据库、数据库管理系统、数据库管理员、支撑系统运行所必须的系统软件和硬件平台组成的存储、管理、处理和维护数据的系统。<br>
+数据库应用系统：由数据库系统、应用开发工具、应用系统、数据库用户组成的计算机系统。</p>
+<p>数据库用户</p>
+<ul>
+<li>数据库管理员</li>
+<li>应用开发人员</li>
+<li>最终用户</li>
+</ul>
+<p>数据库系统特点</p>
+<ul>
+<li>数据结构化</li>
+<li>数据的共享性高，冗余度低，且易扩充</li>
+<li>数据独立性高</li>
+<li>数据由数据库管理系统统一管理和控制</li>
+</ul>
+<p>数据模型分类</p>
+<ul>
+<li>概念数据模型：用户的观点来对数据和信息建模，用于数据库设计</li>
+<li>逻辑数据模型：计算机系统的观点对数据建模，用于 DBMS 实现</li>
+<li>物理数据模型：对数据最底层的抽象，描述数据在系统内部的表示方式和存取方法。</li>
+</ul>
+<p>数据模型组成要素</p>
+<ul>
+<li>数据结构
+<ul>
+<li>数据模型中的数据结构被称为‘数据模式’ (data schema)</li>
+<li>‘数据模式’是划分不同类型数据模型的依据。</li>
+</ul>
+</li>
+<li>数据操作</li>
+<li>数据约束</li>
+</ul>
+<p>模式：数据库中全体数据的逻辑结构和特征的描述。一个数据库只有一个模式。</p>
+<ul>
+<li>外模式：‘子模式’ 或 ‘用户模式’；是对数据库用户（包括应用程序员和最终用户）使用的局部数据的逻辑结构和特征的描述；一个数据库可以有多个外模式。</li>
+<li>内模式（也称 ‘存储模式’或 ‘物理模式’）；是数据物理结构和存储方式的描述；是数据在数据库内部的表示方式；一个数据库只有一个内模式</li>
+</ul>
+<p>二级映象</p>
+<ul>
+<li>外模式／模式映像
+<ul>
+<li>模式：描述的是数据的全局逻辑结构</li>
+<li>外模式：描述的是数据的局部逻辑结构</li>
+<li>保证数据的逻辑独立性
+<ul>
+<li>当模式改变时，数据库管理员对外模式／模式映象作相应改变，使外模式保持不变</li>
+<li>应用程序是依据数据的外模式编写的，应用程序不必修改，保证了数据与程序的逻辑独立性，简称数据的逻辑独立性</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>模式／内模式映像
+<ul>
+<li>定义了数据全局逻辑结构与存储结构之间的对应关系。</li>
+<li>数据库中模式／内模式映象是唯一的</li>
+<li>保证数据的物理独立性
+<ul>
+<li>当数据库的存储结构改变了（例如选用了另一种存储结构），数据库管理员修改模式／内模式映象，使模式保持不变。</li>
+<li>应用程序不受影响。保证了数据与程序的物理独立性，简称数据的物理独立性。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>关系数据模型</strong><br>
+‘域’是一组具有相同数据类型的值的集合<br>
+笛卡尔积<br>
+元组：笛卡尔积中每一个元素（d1, d2, …, dn）叫作一个 ‘n 元组’ (n-tuple)<br>
+分量：笛卡尔积元素（d1, d2, …, dn）中的每一个值 di 叫作一个 ‘分量’<br>
+基数：一个域允许的不同取值个数称为这个域的‘基数’<br>
+关系：给定一个域的序列 D1, D2, …, Dn (其中可能存在相同的域)，笛卡尔积 D1 × D2 × … × Dn 的子集叫做在域 D1, D2, …, Dn 上的关系，表示为 R(D1, D2, …, Dn)（ 或简写为关系 R）<br>
+码 (Key)、候选码 (Candidate key)：若关系中的某一属性组的值能唯一地标识一个元组，而其所有的真子集都不能，则称该属性组为关系的 ‘候选码’，简称 ‘码’<br>
+全码：由关系中的所有属性构成的属性组是这个关系的候选码<br>
+主码： 在一个关系中，可以选择一个候选码作为该关系的 ‘主码’。是关系数据库管理系统（SQL）中才有的概念。<br>
+主属性：候选码中的诸属性称为该关系的 ‘主属性’</p>
+<p>关系的类型</p>
+<ul>
+<li>基本关系（基本表/基表）：实际存在的表</li>
+<li>查询表</li>
+<li>视图表：由基本表或其他视图表导出的表, 是虚表, 结果数据也不需要持久存储。</li>
+</ul>
+<p>‘表’（包括基本表、基表、查询表、视图表）的概念，一般只在关系数据库管理系统（即 SQL 语言）中使用；<br>
+关系模型是一种逻辑数据模型，不涉及数据的物理存储，在关系模型理论中， 其数据结构只有 ‘关系’；</p>
+<p>关系是元组的集合<br>
+关系模式是关系的“型”，元组集合是关系的“值”<br>
+关系模式是对关系的描述<br>
+元组集合的结构</p>
+<ul>
+<li>属性构成</li>
+<li>属性来自的域</li>
+<li>属性与域之间的映象关系</li>
+</ul>
+<p>关系模式的形式化表示：R (U, D, DOM, F)<br>
+关系数据库：在一个给定的应用领域中，所有关系的集合构成一个关系数据库</p>
+<p>关系的完整性</p>
+<ul>
+<li>实体完整性：关系中元组（二维表中的行） 的唯一性。</li>
+<li>参照完整性：若属性（或属性组）F 是基本关系 R 的外码, 它与基本关系 S 的主码 Ks 相对应（基本关系 R 和 S 不一定是不同的关系），则对于 R 中每个元组在 F 上的值必须为：或者取空值（𝐀 的每个属性值均为空值）；或者等于 S 中某个元组的主码值</li>
+<li>用户定义的完整性: 针对某一具体关系数据库的约束条件，反映某一具体应用所涉及的数据必须满足的语义要求</li>
+</ul>
+<p><strong>关系代数</strong><br>
+关系操作</p>
+<ul>
+<li>集合操作：并、交、差、笛卡尔积</li>
+<li>专门的连接操作：选择、投影、连接、除</li>
+<li>5 种基本操作：选择、投影、并、差、笛卡尔积<br>
+基本运算：并 差 笛卡尔积 选择 投影<br>
+扩充运算：交 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span> -连接 自然连接 外连接 左/右外连接 除</li>
+</ul>
+<p><strong>事务</strong><br>
+事务 (Transaction) 是用户定义的一个数据库操作序列，这些操作要么全做，要么全不做，是一个不可分割的工作单位。<br>
+——为了确保实现数据库的数据完整性 (integrity of the database)<br>
+事务启动：隐式方式</p>
+<ul>
+<li>由数据库管理系统来决定，何时为何用户启动一个新的事务</li>
+</ul>
+<p>事务结束</p>
+<ul>
+<li>用户调用 commit 或 rollback 命令，显式地结束当前事务</li>
+<li>由数据库管理系统强行结束一个用户的当前正在运行中的事务</li>
+</ul>
+<p>事务结束方式</p>
+<ul>
+<li>COMMIT
+<ul>
+<li>事务正常结束</li>
+<li>提交事务的所有操作（读+更新）</li>
+<li>被提交的事务对数据库的所有更新结果被写回到磁盘上的物理数据库中，确保事务执行结果的持久化</li>
+</ul>
+</li>
+<li>ROLLBACK
+<ul>
+<li>事务异常终止</li>
+<li>事务运行的过程中发生了故障，不能继续执行</li>
+<li>数据库管理系统将负责撤销被异常终止的事务对数据库的所有已完成的操作，并将数据库中的数据回退到事务开始时状态</li>
+</ul>
+</li>
+</ul>
+<p>事务的启动方式</p>
+<ul>
+<li>数据定义命令 (DDL)</li>
+<li>将系统设为自动提交方式（打开自动提交标志）</li>
+<li>数据操纵命令 (DML)</li>
+</ul>
+<p>保存点 (savepoint)</p>
+<ul>
+<li>在事务的执行过程中，用户可以为该事务设置若干个保存点</li>
+<li>用户事务可以使用 Rollback 命令将当前事务回退到前面的某个保存点 sp，放弃“在保存点 sp 之后，回退操作之前”执行过的对数据库的所有访问操作， 并继续执行当前事务</li>
+<li>不带保存点的回退操作将结束并放弃整个事务</li>
+</ul>
+<p>SQL<br>
+设置事务的运行方式：</p>
+<ul>
+<li>设置事务的自动提交命令：SET AUTOCOMMIT ON | OFF ;</li>
+<li>设置事务的类型：SET TRANSACTION READONLY | READWRITE ;
+<ul>
+<li>READONLY 只能执行对数据库的‘读’操作</li>
+</ul>
+</li>
+<li>设置事务的隔离级别：SET TRANSACTION ISOLATION LEVEL READUNCOMMITTED | READCOMMITTED | READREPEATABLE | SERIALIZABLE ;
+<ul>
+<li>READUNCOMMITTED：未提交读
+<ul>
+<li>不需要申请任何类型的封锁，因而可能会‘读’到其他并发事务未提交的修改结果</li>
+<li>禁止一个事务以该方式去执行对数据的 ‘写’ 操作，以避免与其它并发事务的 ‘写’ 冲突现象</li>
+</ul>
+</li>
+<li>READCOMMITTED：提交读
+<ul>
+<li>在‘读’一个数据对象 A 之前，需要先申请并获得数据对象 A 上的‘共享性’封锁， 在‘读’操作执行结束之后立即释放该封锁</li>
+<li>以避免读取到其它并发事务未提交的修改结果</li>
+</ul>
+</li>
+<li>READREPEATABLE：可重复读
+<ul>
+<li>在 ‘读’ 数据对象 A 之前需要先申请并获得数据对象 A 上的 ‘共享性’ 封锁，并将该封锁维持到当前事务的结束</li>
+<li>可以避免其它的并发事务对当前事务正在使用的数据对象的修改</li>
+</ul>
+</li>
+<li>SERIALIZABLE：可序列化 (可串行化)
+<ul>
+<li>并发事务以一种可串行化的调度策略实现其并发执行，以避免它们相互之间的干扰现象</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>不管采用何种隔离级别，在一个事务以‘<em>写</em>’方式访问数据对象 A 之前，需要先申请并获得数据对象 A 上的‘排它性’封锁，并将该封锁维持到当前事务的结束。</li>
+</ul>
+<p>ACID 特性：</p>
+<ul>
+<li>原子性：事务中包括的诸操作要么都做，要么都不做</li>
+<li>一致性：数据库中只包含已成功完成提交的事务的执行结果</li>
+<li>隔离性：一个事务的执行不能被其他事务干扰</li>
+<li>持久性：一个事务一旦提交，它对数据库中数据的改变就应该是永久性的。</li>
+</ul>
+<p><strong>数据库安全性</strong><br>
+安全性控制<br>
+用户身份鉴别：系统提供的最外层安全保护措施<br>
+存取控制机制</p>
+<ul>
+<li>定义用户权限，并将用户权限登记到数据字典中</li>
+<li>合法权限检查</li>
+</ul>
+<p>存取控制方法</p>
+<ul>
+<li>自主存取控制</li>
+<li>强制存取控制：对于任意一个对象，只有具有合法许可证的用户才可以存取</li>
+</ul>
+<p>自主存取控制——GRANT REVOKE<br>
+用户存取权限定义</p>
+<ul>
+<li>一个客体的 ‘属主’ 自动拥有该客体上的所有存取权限</li>
+<li>拥有权限的用户可以自主地将他所拥有的权限传授给在数据库系统中注册的其他用户</li>
+<li>用户只能通过上述两种方式（或之一）来获得在一个客体上的存取权限。</li>
+</ul>
+<p>授权机制</p>
+<ul>
+<li>管理员</li>
+<li>用户
+<ul>
+<li>拥有自己建立的对象的全部的存取权限</li>
+<li>可以使用 GRANT，把自己拥有的对象上的存取权限授予其他用户</li>
+</ul>
+</li>
+<li>被授权用户
+<ul>
+<li>如果具有“继续授权”的许可，可以把获得的权限再授予其他用户</li>
+</ul>
+</li>
+<li>所有授予出去的权限在必要时又都可用 REVOKE 语句收回<br>
+eg. GRANT UPDATE (Sno), SELECT ON TABLE Student TO U1 WITH GRANT OPTION;<br>
+REVOKE UPDATE (Sno) ON TABLE Student FROM U4 CASADE;</li>
+<li>（U4 之前把权限授予给了 U5）若有 CASADE 则同时收回 U6 的权限，否则拒绝执行</li>
+</ul>
+<p>创建用户授权<br>
+CREATE USER &lt;username&gt; [WITH DBA|RESOURCE|CONNECT]</p>
+<ul>
+<li>默认 CONNECT：不能创建新用户，不能创建模式，也不能创建基本表，只能登录数据库</li>
+<li>RESOURCE：能创建基本表和视图，成为所创建对象的属主； 但不能创建模式，不能创建新的用户。</li>
+<li>DBA：超级用户，可以创建新的用户、创建模式、创建基本表和视图等；拥有对所有数据库对象的存取权限，还可以把这些权限授予一般用户</li>
+</ul>
+<p>数据库角色<br>
+CREATE ROLE &lt;角色名&gt;;<br>
+给角色授权 权限回收<br>
+GRANT &lt;权限&gt; [, &lt;权限&gt;] … ON &lt;对象类型&gt; &lt;对象名&gt; TO &lt;角色&gt; [, &lt;角色&gt;] … ;<br>
+REVOKE &lt;权限 &gt;[, &lt;权限&gt;] … ON &lt;对象类型&gt; &lt;对象名&gt; FROM &lt;角色&gt; [, &lt;角色&gt;] …;<br>
+将角色授予 角色/用户 &amp; 从 角色/用户 回收角色</p>
+<ul>
+<li>GRANT &lt;角色&gt; [, &lt;角色&gt;] … TO &lt;角色<em>or</em>用户&gt; [, &lt;角色<em>or</em>用户&gt;] … ;</li>
+<li>REVOKE &lt;角色&gt; [, &lt;角色&gt;] … FROM &lt;角色<em>or</em>用户&gt; [, &lt;角色<em>or</em>用户&gt;] …;</li>
+</ul>
+<p>授予角色 WITH ADMIN OPTION</p>
+<ul>
+<li>该语句把角色授予某用户，或授予另一个角色</li>
+<li>授予者是角色的创建者或拥有在这个角色上的 ADMIN OPTION</li>
+<li>指定了 WITH ADMIN OPTION 则获得某种权限的角色或用户还可以把这种权限授予其他角色或用户（即‘继续授权’许可）</li>
+</ul>
+<p>授予权限 WITH GRANT OPTION</p>
+<ul>
+<li>关于对象权限的授予权（对象权限：指数据库对象的访问权限，如表中的数据访问、存储过程的调用等）</li>
+</ul>
+<p>视图机制</p>
+<ul>
+<li>把要保密的数据对无权存取这些数据的用户隐藏起来，对数据提供一定程度的安全保护</li>
+</ul>
+<p>审计</p>
+<ul>
+<li>启用一个专用的审计日志（Audit Log）将用户对数据库的所有操作记录在上面</li>
+<li>审计员利用审计日志监控数据库中的各种行为，找出非法存取数据的人、时间和内容</li>
+<li>AUDIT 语句：设置审计功能 &amp; NOAUDIT 语句：取消审计功能
+<ul>
+<li>eg. AUDIT ALTER, UPDATE ON SC;</li>
+</ul>
+</li>
+</ul>
+<p>数据加密</p>
+<ul>
+<li>存储加密</li>
+<li>传输加密</li>
+</ul>
+<p><strong>数据库完整性</strong></p>
+<ul>
+<li>数据的正确性：数据符合现实世界语义，反映了当前的实际状况</li>
+<li>数据的相容性：数据库中的同一对象在不同关系表中的数据是符合逻辑的<br>
+完整性机制</li>
+<li>提供定义完整性约束条件的机制</li>
+<li>提供完整性检查的方法</li>
+<li>违约处理
+<ul>
+<li>拒绝</li>
+<li>级联 CASCADE</li>
+</ul>
+</li>
+</ul>
+<p>可能破坏参照完整性的情况及违约处理<br>
+<img src="2025060544.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060562.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>完整性约束命名子句<br>
+定义和修改：</p>
+<ul>
+<li>在 CREATE TABLE 语句中定义完整性约束</li>
+<li>在定义完整性约束时，可以对完整性约束进行命名</li>
+<li>使用 ALTER TABLE 语句来修改表中的完整性约束的定义，包括
+<ul>
+<li>定义新的完整性约束</li>
+<li>删除现有的 (命名) 完整性约束</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060568.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>修改：<br>
+<img src="2025060688.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>域</em>中的完整性限制</p>
+<ul>
+<li>可以用 CREATE DOMAIN 命令来创建新的域（用户自定义数据类型）</li>
+</ul>
+<p><img src="2025060633.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>断言</p>
+<ul>
+<li>可以使用 CREATE ASSERTION 语句，通过声明性断言来指定更具一般性的约束。</li>
+<li>任何对断言中所涉及的关系的操作都会触发关系数据库管理系统对断言的检查，任何使断言不为真值的操作都会被拒绝执行。</li>
+</ul>
+<p>CREATE ASSERTION &lt;断言名&gt; &lt;CHECK 子句&gt;;<br>
+DROP ASSERTION &lt;断言名&gt;;<br>
+<img src="2025060693.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>触发器<br>
+CREATE TRIGGER &lt;触发器名&gt; { BEFORE | AFTER } &lt;触发事件&gt; ON &lt;表名&gt; REFERENCING NEW | OLD ROW AS &lt;变量&gt; FOR EACH { ROW | STATEMENT } [ WHEN &lt;触发条件&gt;] &lt;触发动作体&gt;<br>
+<img src="2025060694.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060697.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>激活多个触发器</p>
+<ul>
+<li>执行该表上的 BEFORE 触发器;</li>
+<li>激活触发器的 SQL 语句;</li>
+<li>执行该表上的 AFTER 触发器。</li>
+</ul>
+<p><strong>数据库编程</strong><br>
+嵌入式 SQL</p>
+<ul>
+<li>将 SQL 语句嵌入程序设计语言中，被嵌入的程序设计语言，如 C、C++、 Java，称为宿主语言，简称主语言。</li>
+</ul>
+<p>（在 C 语言中）嵌入式 SQL 语句</p>
+<ul>
+<li>带有前缀 ‘EXEC SQL’ 和后缀 ‘;’</li>
+<li>使用 into 子句来获取结果元组值（SELECT … INTO … 或 FETCH … INTO …）</li>
+<li>用主变量 ‘: host_var’ 保存查询结果元组中的属性值；通过前缀‘:’来区分主变量和 SQL 语言中的表名或属性名（也被称为 SQL 变量）</li>
+</ul>
+<p>EXEC SQL select Sno, Sname, Sage<br>
+into : hsno, : hsname, : hsage<br>
+from Student where Sno = : givensno ;<br>
+数据库工作单元与源程序工作单元之间的通信</p>
+<ul>
+<li>向主语言传递 SQL 语句的执行状态信息，使主语言能够据此控制程序流程，主要用 SQL <em>通信区</em>实现</li>
+<li>主语言向 SQL 语句提供执行参数，主要用（输入）<em>主变量</em>实现</li>
+<li>将 SQL 语句查询数据库的结果交给主语言处理，主要用（输入）<em>主变量和游标</em>实现</li>
+</ul>
+<p>SQL 通信区——SQLCA： SQL Communication Area</p>
+<ul>
+<li>定义 SQLCA：EXEC SQL INCLUDE SQLCA</li>
+<li>使用 SQLCA：
+<ul>
+<li>SQLCA 中有一个用于存放每次执行 SQL 语句后返回当前 SQL 语句执行状态的代码变量 SQLCODE；</li>
+<li>如果 SQLCODE 等于预定义的常量 SUCCESS，则表示 SQL 语句成功，否则表示出错；</li>
+<li>应用程序每执行完一条 SQL 语句之后都应该测试一下 SQLCODE 的值，以了解该 SQL 语句执行情况并做相应处理</li>
+</ul>
+</li>
+</ul>
+<p>主变量： 在 SQL 语句中使用的主语言程序变量简称为主变量<br>
+<img src="2025060607.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>指示变量：</p>
+<ul>
+<li>是一个整型变量，是一种特殊的‘主变量’，用来“指示”相关主变量的值是否为‘空值</li>
+<li>一个主变量可以附带一个指示变量</li>
+<li>空格 or INDICATOR</li>
+</ul>
+<p><img src="2025060646.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>为了使用主语言变量，必须首先在 DECLARE SECTION 部分声明这些变量<br>
+<img src="2025060644.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>作用</p>
+<ul>
+<li>在编译时对主语言变量与对应属性进行类型一致性检查</li>
+<li>为接收从数据库返回的结果值而预先申请足够大的内存空间</li>
+</ul>
+<p><em>游标</em></p>
+<ul>
+<li>是系统为用户开设的一个数据缓冲区，用于存放 SQL 查询的执行结果</li>
+<li>每个游标都有一个名字 – 游标名</li>
+<li>当游标被打开后，用户可以用 SQL 语句逐一从游标中获取结果记录，并赋给主变量，交由主语言进一步处理</li>
+</ul>
+<p>建立数据库连接</p>
+<ul>
+<li>EXEC SQL CONNECT TO target [AS connection-name] [USER user-name];</li>
+<li>可修改 EXEC SQL SET CONNECTION connection-name | DEFAULT;</li>
+</ul>
+<p>关闭</p>
+<ul>
+<li>EXEC SQL DISCONNECT [connection-name];</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs c">EXEC SQL BEGIN DECLARE SECTION; <span class="hljs-comment">/*主变量声明开始*/</span><br>	<span class="hljs-type">char</span> Deptname[<span class="hljs-number">21</span>];<br>	<span class="hljs-type">char</span> Hsno[<span class="hljs-number">10</span>];<br>	<span class="hljs-type">char</span> Hsname[<span class="hljs-number">21</span>];<br>	<span class="hljs-type">char</span> Hssex[<span class="hljs-number">3</span>];<br>	<span class="hljs-type">int</span> HSage;<br>	<span class="hljs-type">int</span> NEWAGE;<br>EXEC SQL END DECLARE SECTION; <span class="hljs-comment">/*主变量声明结束*/</span><br><span class="hljs-type">long</span> SQLCODE;<br>EXEC SQL INCLUDE SQLCA; <span class="hljs-comment">/*定义SQL通信区*/</span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> <span class="hljs-comment">/*C语言主程序开始*/</span><br>&#123;<br>	<span class="hljs-type">int</span> count = <span class="hljs-number">0</span>;<br>	<span class="hljs-type">char</span> yn; <span class="hljs-comment">/*变量yn代表yes或no*/</span><br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Please choose the department name(CS/MA/IS): &quot;</span>);<br>	<span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%s&quot;</span>,deptname); <span class="hljs-comment">/*为主变量deptname赋值*/</span><br>	EXEC SQL CONNECT TO TEST@localhost:<span class="hljs-number">54321</span> USER <span class="hljs-string">&quot;SYSTEM&quot;</span>/<span class="hljs-string">&quot;MANAGER&quot;</span>; <span class="hljs-comment">/*连接数据库TEST*/</span><br>	EXEC SQL DECLARE SX CURSOR FOR <span class="hljs-comment">/*定义游标SX*/</span><br>		SELECT Sno,Sname,Ssex,Sage <span class="hljs-comment">/*游标SX对应的查询语句*/</span><br>		FROM Student<br>		WHERE SDept = :deptname;<br>	EXEC SQL OPEN SX;<br>	<span class="hljs-comment">/*打开游标SX，执行游标对应的查询，并指向查询结果的第一行*/</span><br><br>	<span class="hljs-keyword">for</span> ( ; ; ) <span class="hljs-comment">/*用循环结构逐条处理结果集中的记录*/</span><br>	&#123;<br>		EXEC SQL FETCH SX INTO :HSno,:Hsname,:HSsex,:HSage;<br>		<span class="hljs-comment">/*推进游标，将当前数据放入主变量*/</span><br>		<span class="hljs-keyword">if</span> (SQLCA.SQLCODE != <span class="hljs-number">0</span>) <span class="hljs-comment">/*SQLCODE != 0，表示操作不成功*/</span><br>			<span class="hljs-keyword">break</span>; <span class="hljs-comment">/*利用SQLCA中的状态信息决定何时退出循环*/</span><br>		<span class="hljs-keyword">if</span> (count++ == <span class="hljs-number">0</span>) <span class="hljs-comment">/*如果是第一行的话，先打出行头*/</span><br>			<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n%-10s %-20s %-10s %-10s\n&quot;</span>, <span class="hljs-string">&quot;Sno&quot;</span>,<span class="hljs-string">&quot;Sname&quot;</span>,<span class="hljs-string">&quot;Ssex&quot;</span>,<span class="hljs-string">&quot;Sage&quot;</span>);<br>			<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%-10s %-20s %-10s %-10d\n &quot;</span>, HSno,Hsname,Hssex,HSage); <span class="hljs-comment">/*打印查询结果*/</span><br>			<span class="hljs-built_in">printf</span>(“UPDATE AGE(y/n)?”); <span class="hljs-comment">/*询问用户是否要更新该学生的年龄*/</span><br>		<span class="hljs-keyword">do</span> &#123;<br>			<span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%c&quot;</span>,&amp;yn);<br>		&#125; <span class="hljs-keyword">while</span>(yn != <span class="hljs-string">&#x27;N&#x27;</span> &amp;&amp; yn != <span class="hljs-string">&#x27;n&#x27;</span> &amp;&amp; yn != <span class="hljs-string">&#x27;Y&#x27;</span> &amp;&amp; yn != <span class="hljs-string">&#x27;y&#x27;</span>);<br>		<span class="hljs-keyword">if</span> (yn == <span class="hljs-string">&#x27;y&#x27;</span> || yn == <span class="hljs-string">&#x27;Y&#x27;</span>) <span class="hljs-comment">/*如果选择更新操作*/</span><br>		&#123;<br>			<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;INPUT NEW AGE:&quot;</span>);<br>			<span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d&quot;</span>,&amp;NEWAGE); <span class="hljs-comment">/*用户输入新年龄到主变量中*/</span><br>			EXEC SQL UPDATE Student <span class="hljs-comment">/*嵌入式SQL更新语句*/</span><br>				SET Sage = :NEWAGE<br>				WHERE CURRENT OF SX;<br>		&#125; <span class="hljs-comment">/*对当前游标指向的学生年龄进行更新*/</span><br>	&#125;<br>	EXEC SQL CLOSE SX; <span class="hljs-comment">/*关闭游标SX，不再和查询结果对应*/</span><br>	EXEC SQL COMMIT WORK; <span class="hljs-comment">/*提交更新*/</span><br>	EXEC SQL DISCONNECT TEST; <span class="hljs-comment">/*断开数据库连接*/</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>注意，游标相关</p>
+<ul>
+<li>EXEC SQL DECLARE <em>SX</em> CURSOR FOR…</li>
+<li>EXEC SQL OPEN SX;</li>
+<li>EXEC SQL FETCH SX INTO : HSno,: Hsname,: HSsex,: HSage;</li>
+<li>EXEC SQL UPDATE Student<br>
+SET Sage = : NEWAGE<br>
+WHERE CURRENT OF SX;</li>
+<li>EXEC SQL CLOSE SX;</li>
+</ul>
+<p>异常处理<br>
+whenever 语句用于定义异常处理办法<br>
+最常见的执行异常是：sqlerror 和 not found<br>
+最常用的异常处理办法是： 用 goto 语句跳转到特定的语句标号处，进行异常处理</p>
+<ul>
+<li>exec sql whenever sqlerror goto report_error（语句标号）</li>
+</ul>
+<p>EXEC SQL WHENEVER condition action;</p>
+<ul>
+<li>condition: SQLERROR | NOT FOUND | SQLWARNING</li>
+<li>action: CONTINUE | GOTO label | STOP | DO function | BREAK</li>
+</ul>
+<p>不使用游标的 SQL 语句</p>
+<ul>
+<li>说明性语句</li>
+<li>数据定义语句</li>
+<li>数据控制语句</li>
+<li>查询结果为单记录的 SELECT 语句</li>
+<li>非 CURRENT 形式的 INSERT、DELETE、UPDATE 等增删改语句</li>
+</ul>
+<p>必须使用游标的 SQL 语句</p>
+<ul>
+<li>查询结果为多条记录的 SELECT 语句</li>
+<li>CURRENT 形式的 UPDATE 语句</li>
+<li>CURRENT 形式的 DELETE 语句</li>
+</ul>
+<p>CURRENT 形式的 UPDATE 或 DELETE 语句</p>
+<ul>
+<li>在 UPDATE 语句或 DELETE 语句中要用子句 WHERE CURRENT OF &lt;游标名&gt;</li>
+<li>表示修改或删除最近一次取出的记录，即游标指针当前指向的记录</li>
+</ul>
+<p>动态 SQL</p>
+<ol>
+<li>使用 SQL 语句主变量</li>
+<li>动态参数</li>
+<li>执行准备好的语句（EXECUTE）</li>
+</ol>
+<p><img src="2025060628.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>动态参数</p>
+<ul>
+<li>SQL 语句中的可变元素</li>
+<li>使用参数符号（?）表示该位置的数据在运行时设定</li>
+</ul>
+<p>和主变量的区别</p>
+<ul>
+<li>动态参数的输入不是编译时完成绑定</li>
+<li>而是通过 PREPARE 语句准备主变量和执行语句 EXECUTE 绑定数据或主变量来完成</li>
+</ul>
+<p>使用动态参数的步骤</p>
+<ol>
+<li>声明 SQL 语句主变量</li>
+<li>准备 SQL 语句（PREPARE）
+<ol>
+<li>EXEC SQL PREPARE &lt;语句名&gt; FROM &lt;SQL 语句主变量&gt;;</li>
+</ol>
+</li>
+</ol>
+<p>执行</p>
+<ul>
+<li>EXEC SQL EXECUTE &lt;语句名&gt; [INTO &lt;主变量表&gt;] [USING &lt;主变量或常量&gt;];</li>
+</ul>
+<p><img src="2025060680.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>过程化 SQL<br>
+为了能够在数据库中实现部分应用程序逻辑，需要在交互式 SQL 语言的基础上扩充部分过程式程序设计语言的成份，构成一个可编程的 SQL 语言，称为过程化 SQL，又被称为过程式 SQL、可编程 SQL。<br>
+过程化 SQL 相对于嵌入式 SQL 的优势</p>
+<ul>
+<li>可独立编程，不再需要区分主变量与 SQL 变量</li>
+<li>不需要经历从预编译到编译的处理</li>
+<li>在数据库服务器内部实现数据交换与处理</li>
+</ul>
+<p>过程化 SQL 的基本结构是 ‘块’</p>
+<ul>
+<li>块之间可以互相嵌套</li>
+<li>每个块完成一个逻辑操作</li>
+</ul>
+<p>PL/SQL 变量定义 三种方式</p>
+<ul>
+<li>基本数据类型
+<ul>
+<li>sex BOOLEAN :=TRUE； age number (3) not null:=25；</li>
+</ul>
+</li>
+<li>%TYPE
+<ul>
+<li>声明一个变量，使它的类型与某个变量或数据库表中某个列的数据类型一致</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs ada"><span class="hljs-keyword">DECLARE</span><br>teacher_name char(<span class="hljs-number">5</span>)<br>student_name teacher_name %<span class="hljs-keyword">TYPE</span><br><span class="hljs-type">BEGIN</span><br><span class="hljs-type"></span>...<br><span class="hljs-keyword">END</span><br></code></pre></td></tr></table></figure>
+<ul>
+<li>记录类型定义的一般格式
+<ul>
+<li>TYPE &lt;recordtypename&gt; IS RECORD ( &lt;field&gt; &lt;datatype&gt; [[NOT NULL]{DEFAULT|:=} &lt;expression&gt;] [,&lt;field&gt; …] );</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">DECLARE</span><br>	<span class="hljs-keyword">TYPE</span> student <span class="hljs-keyword">IS</span> <span class="hljs-type">RECORD</span> （<br>		id NUMBER(<span class="hljs-number">4</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span> <span class="hljs-keyword">default</span> <span class="hljs-number">0</span>, <span class="hljs-comment">/* 非空时必须加上缺省值 */</span><br>		<span class="hljs-type">name</span> <span class="hljs-type">CHAR</span>(<span class="hljs-number">10</span>) ,<br>		sex <span class="hljs-type">BOOLEAN</span> <span class="hljs-keyword">NOT</span> <span class="hljs-keyword">NULL</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">true</span>,<br>		birthdate <span class="hljs-type">DATE</span>,<br>		physics NUMBER(<span class="hljs-number">3</span>),<br>		chemistry NUMBER(<span class="hljs-number">3</span>)<br>	);<br>	<span class="hljs-comment">/* 下面定义一个student 类型的变量 */</span><br>	student1 student;<br></code></pre></td></tr></table></figure>
+<p>声明一个记录型变量，使它的类型与某个基本表的数据结构一致，用%ROWTYPE</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs dts">DECLARE<br>	emp_val emp<span class="hljs-variable">&amp;</span>ROWTYPE<span class="hljs-punctuation">;</span><br>	<span class="hljs-comment">/*定义与关系表emp的表结构相同的记录行变量emp_val*/</span><br>变量引用方式：emp_val.empno <span class="hljs-comment">/*empno是emp中的一个属性*/</span><br></code></pre></td></tr></table></figure>
+<p>局部变量：在过程块中定义的变量，只能在块内引用<br>
+全局变量：在块外定义，使用时需要加’: '前缀<br>
+游标属性</p>
+<ul>
+<li>%ISOPEN 如果游标已经打开，返回 TRUE，否则返回 FALSE。</li>
+<li>%FOUND 如果最近一次使用 FETCH 语句，有返回结果则为 TRUE，否则为 FALSE;</li>
+<li>%NOTFOUND 如果最近一次使用 FETCH 语句，没有返回结果则为 TRUE，否则为 FALSE;</li>
+<li>%ROWCOUNT 数值型。描述的是到目前为止实际从游标工作区取的记录数。</li>
+</ul>
+<p>T-SQL<br>
+局部变量</p>
+<ul>
+<li>用户自己定义的变量，用于在语句之间传递数据</li>
+<li>以@开头<br>
+全局变量</li>
+<li>是系统定义的变量，用于存储系统的特定信息</li>
+<li>用户不能建立全局变量，也不能修改其值</li>
+<li>以@@开头</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs sql">USE Northwind<br>GO<br><span class="hljs-keyword">DECLARE</span> <span class="hljs-variable">@EmpIDVariable</span> <span class="hljs-type">INT</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-variable">@EmpIDVariable</span> <span class="hljs-operator">=</span> EmployeeID<br><span class="hljs-keyword">FROM</span> Employees<br><span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> EmployeeID <span class="hljs-keyword">DESC</span><br><span class="hljs-keyword">SELECT</span> <span class="hljs-variable">@EmpIDVariable</span><br>GO<br></code></pre></td></tr></table></figure>
+<p>存储过程<br>
+用过程化 SQL 编写的过程，经编译和优化后存储在数据库服务器中，因而被称为 ‘存储过程<br>
+创建 CREATE [OR REPLACE] PROCEDURE 过程名 ([参数 1, 参数 2,…]) AS &lt;过程化 SQL 块&gt;;</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">OR</span> REPLACE <span class="hljs-keyword">PROCEDURE</span> TRANSFER<br>	( inAccount <span class="hljs-type">INT</span>, outAccount <span class="hljs-type">INT</span>, amount <span class="hljs-type">FLOAT</span> )<br>	<span class="hljs-comment">/* 定义存储过程TRANSFER，如果该过程已经存在则覆盖其原有定义 */</span><br>	<span class="hljs-comment">/* 三个输入参数：转入账户、转出账户、转账额度 */</span><br><span class="hljs-keyword">AS</span><br><span class="hljs-keyword">DECLARE</span> <span class="hljs-comment">/* 定义变量 */</span><br>	totalDepositOut <span class="hljs-type">Float</span>;<br>	totalDepositIn <span class="hljs-type">Float</span>;<br>	inAccountnum <span class="hljs-type">INT</span><br><span class="hljs-keyword">BEGIN</span> <span class="hljs-comment">/* 过程体执行部分的开始 */</span><br>	<span class="hljs-comment">/* 检查转出账户及其余额 */</span><br>	<span class="hljs-keyword">SELECT</span> Total <span class="hljs-keyword">INTO</span> totalDepositOut <span class="hljs-keyword">FROM</span> Accout <span class="hljs-keyword">WHERE</span> accountnum<span class="hljs-operator">=</span>outAccount;<br>	IF totalDepositOut <span class="hljs-keyword">IS</span> <span class="hljs-keyword">NULL</span> <span class="hljs-keyword">THEN</span> <span class="hljs-comment">/* 转出账户不存在或账户中没有存款 */</span><br>		<span class="hljs-keyword">ROLLBACK</span>; <span class="hljs-comment">/* 回滚事务 */</span><br>		<span class="hljs-keyword">RETURN</span>;<br>	<span class="hljs-keyword">END</span> IF;<br>	IF totalDepositOut <span class="hljs-operator">&lt;</span> amount <span class="hljs-keyword">THEN</span> <span class="hljs-comment">/*如果账户存款不足*/</span><br>		<span class="hljs-keyword">ROLLBACK</span>; <span class="hljs-comment">/* 回滚事务 */</span><br>		<span class="hljs-keyword">RETURN</span>;<br>	<span class="hljs-keyword">END</span> IF;<br>	.....<br></code></pre></td></tr></table></figure>
+<p>执行存储过程：CALL/PERFORM PROCEDURE 过程名 ([参数 1, 参数 2,…]);</p>
+<p><strong>数据库设计</strong><br>
+对于一个给定的应用环境，构造（设计）优化的数据库逻辑模式和物理结构，并据此建立数据库及其应用系统，使之能够有效地存储和管理数据，满足各种用户的应用需求，包括信息管理要求和数据操作要求<br>
+步骤</p>
+<ul>
+<li>需求分析</li>
+<li>概念结构设计
+<ul>
+<li>概念模型：E-R 图</li>
+<li>通过对用户需求进行综合、归纳与抽象，形成一个独立于具体数据库管理系统的概念数据模型</li>
+</ul>
+</li>
+<li>逻辑结构设计
+<ul>
+<li>形成外模式</li>
+<li>将概念结构转换为某个数据库管理系统所支持的逻辑数据模型，并对其进行优化</li>
+</ul>
+</li>
+<li>物理结构设计
+<ul>
+<li>形成内模式</li>
+<li>为逻辑数据结构选取一个最适合应用环境的物理结构，包括存储结构和存取方法</li>
+</ul>
+</li>
+<li>数据库实施</li>
+<li>数据库运行和维护</li>
+</ul>
+<p>需求分析<br>
+数据字典：数据项 数据结构 数据流 数据存储 处理过程<br>
+需求分析的结果：数据字典，用户需求规格说明书</p>
+<p>概念结构设计<br>
+常用策略：自顶向下地进行需求分析 &amp; 自底向上地设计概念结构<br>
+自底向上设计概念结构的步骤</p>
+<ol>
+<li>第 1 步：抽象数据并设计局部视图</li>
+<li>第 2 步：集成局部视图，得到全局概念结构</li>
+</ol>
+<p>实体&amp;属性</p>
+<ul>
+<li>作为属性，不能再具有需要描述的性质。属性必须是不可分的数据项，不能包含其他属性</li>
+<li>属性不能与其他实体具有联系，即 E-R 图中所表示的联系是实体之间的联系。</li>
+</ul>
+<p>逻辑结构设计<br>
+把概念结构设计阶段设计好的基本 E-R 图转换为与选用数据库管理系统产品所支持的数据模型相符合的逻辑结构<br>
+关系数据模型的优化</p>
+<ul>
+<li>关系规范化设计：确定数据依赖 + 规范化设计</li>
+<li>不同关系之间冗余函数依赖的检查</li>
+<li>并不是规范化程度越高的关系就越优</li>
+</ul>
+<p>关系模式的分解：</p>
+<ul>
+<li>水平：把 (基本) 关系的元组集合划分为若干子集合，定义每个子集合为一个子关系，以提高系统的效率。</li>
+<li>把关系模式 R 的属性集划分解为若干子集合，形成若干子关系模式。</li>
+</ul>
+<p>基本方法：</p>
+<ul>
+<li>每个‘实体集’被转换成一个关系</li>
+<li>每个‘联系’通常也被转换成一个关系</li>
+</ul>
+<p>物理结构设计<br>
+数据库在物理设备上的存储结构与存取方法称为数据库的物理结构， 它依赖于选定的数据库管理系统。<br>
+步骤</p>
+<ul>
+<li>确定数据库的物理结构，在关系数据库中主要指存取方法和存储结构;</li>
+<li>对物理结构进行评价，评价的重点是时间和空间效率</li>
+</ul>
+<p>扩展 ER 模型<br>
+ISA 联系</p>
+<ul>
+<li>不相交约束
+<ul>
+<li>父类中的一个实体不能同时属于多个子类中的实体集。即父类中的一个实体最多属于一个子类实体集。</li>
+<li>用 ISA 联系符号中的一个叉号“X” 来表示</li>
+</ul>
+</li>
+<li>可重叠约束</li>
+<li>完全特化：父类中的每一个实体，必须是某一个子类中的实体；双线连接</li>
+<li>部分特化：允许父类中的某些实体不属于任何一个子类</li>
+</ul>
+<p>基数约束</p>
+<ul>
+<li>min = 1 要求 E 中的每一个实体在联系 R 中至少出现一次
+<ul>
+<li>强制参与</li>
+</ul>
+</li>
+<li>min = 0 允许 E 中的某些实体在联系 R 中不出现
+<ul>
+<li>非强制参与</li>
+</ul>
+</li>
+<li>max = 1 E 中的每一个实体在联系 R 中最多只出现一次
+<ul>
+<li>单值参与</li>
+</ul>
+</li>
+<li>max = * 允许 E 中的某些实体在联系 R 中可以出现多次
+<ul>
+<li>多值参与</li>
+</ul>
+</li>
+</ul>
+<p><strong>关系数据理论</strong><br>
+函数依赖：设 R (U) 是一个属性集 U 上的关系模式，X 和 Y 是 U 的子集。若对于 R (U) 的任意一个可能的关系 r，r 中不可能存在两个元组在 X 上的属性值相等，而在 Y 上的属性值不等，则称“X 函数确定 Y”或“Y 函数依赖于 X”，记作 X→Y。</p>
+<p>平法 &amp; 非平凡：</p>
+<ul>
+<li>非平凡，如果 X → Y 但 X ⊈ Y</li>
+<li>平凡，如果 X → Y 但 X 属于 Y</li>
+</ul>
+<p>完全 &amp; 部分：</p>
+<ul>
+<li>如果 X → Y, 并且对于 X 的任何一个真子集 X’, 都有 X’ ↛ Y, 则称 X 对 Y 完全函数依赖</li>
+</ul>
+<p>传递：</p>
+<ul>
+<li>如果 X → Y，Y ⊈ X，Y ↛ X，Y → Z，Z ⊈ Y, 则称 Z 对 X 传递函数依赖</li>
+</ul>
+<p>候选码：K -F-&gt; U，K 是 R 的一个候选码，简称码<br>
+超码：K -&gt; U（部分 or 完全）, 则 K 是超码</p>
+<ul>
+<li>候选码是最小的超码，候选码的真子集一定不是超码</li>
+</ul>
+<p>全码：R 的所有属性 U 是 R 的码<br>
+若有多个候选码，则选定一个做为主码<br>
+主属性：包含在任何一个候选码中的属性<br>
+外码：R 中属性或属性组 X 并非 R 的码，但是另一个关系模式的码</p>
+<p>范式<br>
+2NF：若关系模式 R ∈ 1NF，并且每一个非主属性都完全函数依赖于任何一个候选码，则 R ∈ 2NF</p>
+<ul>
+<li>消除 非对主 的部分函数依赖</li>
+</ul>
+<p>3NF：设关系模式 R(U, F) ∈ 1NF，若 R 中不存在这样的码 X、属性组 Y 及非主属性 Z（Z ⊈ Y）, 使得 X → Y，Y → Z 成立，Y ↛ X，则称 R(U, F) ∈ 3NF.</p>
+<ul>
+<li>消除 非主属性对候选码 的传递函数依赖</li>
+</ul>
+<p>BCNF：设关系模式 R(U, F) ∈ 1NF，若 X → Y 且 Y ⊈ X 时 X 必含有码，则 R(U, F) ∈ BCNF.</p>
+<ul>
+<li>如果每一个决定属性集都包含候选码</li>
+<li>性质
+<ul>
+<li>所有非主属性都完全函数依赖于每个候选码</li>
+<li>所有主属性都完全函数依赖于每个不包含它的候选码</li>
+<li>没有任何属性完全函数依赖于非码的任何一组属性</li>
+</ul>
+</li>
+</ul>
+<p>Armstrong 公理<br>
+基本规则</p>
+<ul>
+<li>自反率：若 Y ⊆ X ⊆ U，则 X → Y 为 F 所蕴涵。</li>
+<li>增广率：若 X → Y 为 F 所蕴涵，且 Z ⊆ U，则 XZ → YZ</li>
+<li>传递率：若 X → Y 及 Y → Z 为 F 所蕴含，则 X → Z 为 F 所蕴含</li>
+</ul>
+<p>推理规则</p>
+<ul>
+<li>合并规则：若 X → Y 及 X → Z，则 X → YZ</li>
+<li>分解规则：若 X → Y 及 Z ⊆ Y，则 X → Z</li>
+<li>伪传递规则：若 X → Y 及 WY → Z，则 XW → Z</li>
+</ul>
+<p>函数依赖集 F 的闭包 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mo>+</mo></msup></mrow><annotation encoding="application/x-tex">F^+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7713em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7713em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">+</span></span></span></span></span></span></span></span></span></span></span></p>
+<ul>
+<li>为 F 所逻辑蕴含的函数依赖的全体叫作 F 的闭包</li>
+</ul>
+<p>属性集的闭包</p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>X</mi><mi>F</mi><mo lspace="0em" rspace="0em">+</mo></msubsup><mo>=</mo><mo stretchy="false">{</mo><mi>A</mi><mi mathvariant="normal">∣</mi><mi>X</mi><mo>→</mo><mi>A</mi><mtext> 能由</mtext><mi>F</mi><mtext>根据</mtext><mi>A</mi><mi>r</mi><mi>m</mi><mi>s</mi><mi>t</mi><mi>r</mi><mi>o</mi><mi>n</mi><mi>g</mi><mtext>公里导出，</mtext><mi>A</mi><mo>∈</mo><mi>U</mi><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">X_F^{+}=\{A|X \rightarrow A\  能由F根据Armstrong公里导出，A\in U\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.105em;vertical-align:-0.2935em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8115em;"><span style="top:-2.4065em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">F</span></span></span><span style="top:-3.1031em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">+</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2935em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord mathnormal">A</span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">A</span><span class="mspace"> </span><span class="mord cjk_fallback">能由</span><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="mord cjk_fallback">根据</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">m</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">ro</span><span class="mord mathnormal">n</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord cjk_fallback">公里导出，</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="mclose">}</span></span></span></span></li>
+</ul>
+<p><em>计算闭包</em><br>
+<img src="2025060633-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>极小函数依赖集（最小覆盖）</p>
+<ul>
+<li>F 中任一函数依赖的右部仅含有一个属性；</li>
+<li>F 中不存在这样的函数依赖 X → A， 使得 F 与 F − {X → A} 等价
+<ul>
+<li>不存在冗余</li>
+</ul>
+</li>
+<li>F 中不存在这样的函数依赖 X → A， X 有真子集 Z 使得 F - {X → A} U {Z → A}与 F 等价
+<ul>
+<li>不存在部分函数依赖</li>
+</ul>
+</li>
+</ul>
+<p><em>计算最小函数依赖集</em></p>
+<ol>
+<li>把右边变成单属性</li>
+<li>左边是多属性的，看少一个属性能不能推出来</li>
+<li>删除每个依赖，看用剩下的能不能推出来</li>
+<li>把左边一样的合并</li>
+</ol>
+<p>模式分解<br>
+无损连接 + 保持函数依赖</p>
+<p><em>候选码计算</em></p>
+<ol>
+<li>求最小函数依赖集</li>
+<li>找在左/中/右出现的属性集
+<ol>
+<li>左：肯定是 右：不可能是 中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>U</mi><mi>A</mi></msub></mrow><annotation encoding="application/x-tex">U_A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">A</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+</ol>
+</li>
+</ol>
+<p><img src="2025060683.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>转换为 3NF 既有无损连接性又保持函数依赖的分解</em></p>
+<ol>
+<li>计算极小函数依赖集</li>
+<li>对 F 中的每一个函数依赖 X → Y 做如下处理
+<ol>
+<li>如果在分解 ρ 中找不到满足下述条件的关系模式 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo stretchy="false">(</mo><msub><mi>U</mi><mi>Z</mi></msub><mo separator="true">,</mo><msub><mi>F</mi><mi>z</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">Z(U_Z,F_z)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">Z</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">Z</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.04398em;">z</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>：XY ⊆ <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>U</mi><mi>Z</mi></msub></mrow><annotation encoding="application/x-tex">U_Z</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">Z</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>则由 X 和 Y 合并构成一个新的子关系模式并加入到分解 ρ 中</li>
+</ol>
+</li>
+<li>如果关系 R 的所有候选码都没有出现在分解 ρ 的关系模式中，则任选一个候选码 K，由 K 中的属性单独构成一个关系模式加入分解 ρ</li>
+</ol>
+<p><strong>SQL</strong><br>
+模式</p>
+<ul>
+<li>create schema 模式名 authrization 用户名 + 表/视图/授权定义子句</li>
+<li>drop schema 模式名 CASCADE | RESTRICT
+<ul>
+<li>CASCADE 级联：删除模式的同时把该模式中所有的数据库对象全部删除</li>
+<li>RESTRICT 限制：如果该模式中定义了下属的数据库对象（如表、视图等），则拒绝该删除语句的执行</li>
+</ul>
+</li>
+</ul>
+<p>基本表</p>
+<ul>
+<li>修改 alter table xxxxxx
+<ul>
+<li>add 新列名 数据类型 完整性约束</li>
+<li>add 表级完整性约束</li>
+<li>drop 列名 CASCADE | RESTRICT</li>
+<li>drop constraint 完整性约束名 CASCADE | RESTRICT</li>
+<li>alter column 列名 数据类型</li>
+</ul>
+</li>
+<li>删除 drop table 表明 CASCADE | RESTRICT</li>
+</ul>
+<p>索引</p>
+<ul>
+<li>create [unique] [cluster] index 索引名 on 表名 （列名 次序…）
+<ul>
+<li>e.g CREATE UNIQUE INDEX SCno ON SC (Sno ASC, Cno DESC);</li>
+</ul>
+</li>
+<li>drop index 索引名</li>
+</ul>
+<p>查询语句</p>
+<ol>
+<li>目标子句 SELECT [distinct] column-name-list | expressions | *
+<ol>
+<li>简单的属性投影：可以通过‘表名. 列名’的方式来指明是对哪一张表中的哪个列的投影；</li>
+<li>可以将一个表达式的计算结果投影到某个目标列上；</li>
+<li>可以在目标子句中对投影得到的结果列进行重命名：&lt;column_expression&gt; AS &lt;colname&gt;</li>
+<li>可用‘ * ’来代替表中的所有列；</li>
+<li>可添加保留字 distinct 来消除结果表中的重复元组。</li>
+</ol>
+</li>
+<li>范围子句： FROM tablename { , tablename … }
+<ol>
+<li>可以在 FROM 子句中对一个表重新命名（即定义一个别名 alias）： &lt;table_name&gt; &lt;alias_name&gt;</li>
+</ol>
+</li>
+<li>条件子句： WHERE search_condition
+<ol>
+<li>在 FROM 子句中给出的表只是表明此次查询需要访问这些表，它们之间是通过笛卡儿积运算进行合并的</li>
+<li>如果需要执行它们之间的‘θ-连接’或‘自然连接’运算，则需要在 WHERE 子句中显式地给出它们的连接条件。</li>
+</ol>
+</li>
+</ol>
+<p>查询满足条件的元组</p>
+<ul>
+<li>比较大小：=, &gt;, &lt;, &gt;=, &lt;=, !=, &lt;&gt;, !&gt;, !&lt;</li>
+<li>确定范围：BETWEEN … AND … 或 NOT BETWEEN … AND …</li>
+<li>确定集合：IN &lt;值表&gt;, NOT IN &lt;值表&gt;</li>
+<li>字符匹配： [ NOT ] LIKE ‘&lt;匹配串&gt;’ [ ESCAPE ‘&lt;换码字符&gt;’ ]
+<ul>
+<li>ESCAPE 使用换码字符将通配符转义为普通字符
+<ul>
+<li>WHERE Cname LIKE ‘DB\ _ Design’ ESCAPE ‘\’</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>涉及空值的查询： IS NULL 或 IS NOT NULL
+<ul>
+<li>在 SQL 标准中，“IS” 不能用 “=” 代替</li>
+</ul>
+</li>
+<li>多重条件：逻辑运算符：AND 和 OR 来连接多个查询条件</li>
+</ul>
+<p>对结果进行排序：ORDER BY 子句</p>
+<p>聚集函数：</p>
+<ul>
+<li>count
+<ul>
+<li>count (*)：返回集合中的元组个数\</li>
+<li>count (colname)：返回在 colname 属性上取值非空的元组个数</li>
+<li>count (distinct colname)：返回 colname 取值非空且互不相同的元组个数</li>
+</ul>
+</li>
+<li>SUM, AVG, MAX, MIN 统计: 分别用于统计一组元组在某个属性上的取值的总和、平均值、最大值、最小值</li>
+</ul>
+<p>三种类型统计查询语句</p>
+<ul>
+<li>统计查询
+<ul>
+<li>没有 group by, 直接对整个查询结果进行统计计算</li>
+<li>返回单条统计结果</li>
+</ul>
+</li>
+<li>分组统计查询
+<ul>
+<li>使用 group by 子句，分组进行统计计算</li>
+<li>每一个‘组’返回一条统计结果</li>
+</ul>
+</li>
+<li>分组-选择统计查询
+<ul>
+<li>使用 group by 子句先分组，再用 having 子句进行‘组’的选择，最后再对符合条件的组进行统计计算</li>
+<li>每一个符合 having 条件的‘组’返回一条统计结果</li>
+</ul>
+</li>
+</ul>
+<p>WHERE 子句中与嵌套查询有关的查询谓词主要有：</p>
+<ul>
+<li>expr [ NOT ] IN ( subquery ) 标量与集合量之间的属于比较</li>
+<li>expr θ SOME|ANY|ALL ( subquery ) 标量与集合中元素之间的量化比较</li>
+<li>: [ NOT ] EXISTS ( subquery ) 是否为空集的判断谓词</li>
+</ul>
+<p>集合操作</p>
+<ul>
+<li>并 UNION</li>
+<li>交 INTERSECT</li>
+<li>差 EXCEPT</li>
+</ul>
+<p>视图</p>
+<ul>
+<li>CREATE VIEW &lt;视图名&gt; [(&lt;列名&gt; [,&lt;列名&gt;]…)] AS &lt;子查询&gt; [WITH CHECK OPTION];</li>
+<li>WITH CHECK OPTION：对视图进行 UPDATE，INSERT 和 DELETE 操作时要保证更新、插入或删除的行满足视图定义中的谓词条件（即子查询中的条件表达式）</li>
+<li>DROP VIEW &lt;视图名&gt; [CASCADE];
+<ul>
+<li>如果该视图上还导出了其他视图，使用 CASCADE 级联删除语句，把该视图和由它导出的所有视图一起删除。</li>
+</ul>
+</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E5%9F%BA%E7%A1%80/" class="category-chain-item">2025春-数据管理基础</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" class="print-no-link">#数据库</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>数据管理基础-汇总</div>
+      <div>https://astronautbase.github.io/2025/08/25/数据管理基础-汇总/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%8E%E8%AE%A1%E7%AE%972-%E5%A4%8D%E4%B9%A0%E6%8F%90%E7%BA%B2/" title="软件工程与计算2-复习提纲">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">软件工程与计算2-复习提纲</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-08%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E4%B8%AD%E7%9A%84%E5%AE%89%E5%85%A8/" title="互联网计算-08计算机网络中的安全">
+                        <span class="hidden-mobile">互联网计算-08计算机网络中的安全</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

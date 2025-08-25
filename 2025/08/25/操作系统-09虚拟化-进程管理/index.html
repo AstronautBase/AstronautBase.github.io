@@ -1,0 +1,857 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="进程的概念  拥有独立地址空间的运行实体，可以包含一个或多个线程  进程控制块：类似线程控制块 TCB，进程也需要一些元信息，用来描述（抽象）进程，方便操作系统管理，即进程控制块（Process Control Block） 进程树：  ⼀个进程是被某个进程所创建的，⼀个进程也可以创建多个进程 因此操作系统的进程可以构成⼀个进程树（Process Tree），其中⽗进程节点指向其所创建的⼦进程 l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统-09虚拟化-进程管理">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="进程的概念  拥有独立地址空间的运行实体，可以包含一个或多个线程  进程控制块：类似线程控制块 TCB，进程也需要一些元信息，用来描述（抽象）进程，方便操作系统管理，即进程控制块（Process Control Block） 进程树：  ⼀个进程是被某个进程所创建的，⼀个进程也可以创建多个进程 因此操作系统的进程可以构成⼀个进程树（Process Tree），其中⽗进程节点指向其所创建的⼦进程 l">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/2025060762.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/2025060790.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/2025060767-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/2025060714.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/2025060749.png">
+<meta property="article:published_time" content="2025-08-25T12:25:27.000Z">
+<meta property="article:modified_time" content="2025-08-25T12:32:05.362Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/2025060762.png">
+  
+  
+  
+  <title>操作系统-09虚拟化-进程管理 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="操作系统-09虚拟化-进程管理"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 20:25" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          20 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">操作系统-09虚拟化-进程管理</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>进程的概念</p>
+<ul>
+<li>拥有独立地址空间的运行实体，可以包含一个或多个线程</li>
+</ul>
+<p>进程控制块：类似线程控制块 TCB，进程也需要一些元信息，用来描述（抽象）进程，方便操作系统管理，即进程控制块（Process Control Block）</p>
+<p><strong>进程树</strong>：</p>
+<ul>
+<li>⼀个进程是被某个进程所创建的，⼀个进程也可以创建多个进程</li>
+<li>因此操作系统的进程可以构成⼀个进程树（Process Tree），其中⽗进程节点指向其所创建的⼦进程</li>
+<li>linux 下可以通过命令 <code>pstree</code> 得到当前进程树</li>
+</ul>
+<p>第一个进程 init</p>
+<ul>
+<li>CPU reset -&gt; Firmware 代码执⾏ -&gt; 加载操作系统并初始化 -&gt; 加载第⼀个进程</li>
+<li>init 进程加载完之后，操作系统已经完成了所需要资源的管理，并“躺”在后台等待用户命令 syscall 或者中断的发生</li>
+</ul>
+<p>进程的生命周期：<br>
+<img src="2025060762.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>终⽌之后的进程的“资源”会被操作系统回收，并通知其⽗进程其终⽌状态</p>
+<ul>
+<li>通知？
+<ul>
+<li>PCB 中⽗进程含有指针指向⼦进程 PCB，如果进程终⽌之后连 PCB 也都被回收，那么该指针就会指向⼀个“已经”被释放的内存 （Dangling pointers）</li>
+<li>已终⽌但其 PCB 信息还没被回收的进程被称为“僵⼫进程”（Zombie process）</li>
+<li>⽗进程调⽤ wait 系统调⽤会得到⼦进程的退出通知（⼦进程退出前会阻塞⽗进程）和其退出状态，同时移除该⼦进程的 PCB</li>
+</ul>
+</li>
+</ul>
+<p>但并不是每个⽗进程都⽼⽼实实的 wait ⼦进程的，其完全可能在⼦进程终⽌ 前就终⽌了：这时的⼦进程是没有⽗进程的！</p>
+<ul>
+<li>该状态下（没有⽗进程）的进程被称为“孤⼉进程”（Orphan Process）</li>
+<li>linux 会让 init 进程重新接管这些孤⼉进程，从⽽能够在这些孤⼉进程终⽌ 时回收 PCB 资源</li>
+</ul>
+<p>进程最重要的三类系统调用</p>
+<ul>
+<li>fork - 进程的创建</li>
+<li>execve - 进程的改变</li>
+<li>exit - 进程的删除</li>
+</ul>
+<h2 id="fork">fork</h2>
+<p><strong>fork 系统调用</strong><br>
+创建一个新的（子）进程</p>
+<ul>
+<li>通过做一份当前进程完整的复制（内存、寄存器现场）</li>
+<li>子进程和⽗进程会各⾃独⽴地继续执⾏ fork 之后的指令</li>
+</ul>
+<p>如何区分父子进程</p>
+<ul>
+<li>fork 的返回值不同: ⼦进程返回 0, ⽗进程返回⼦进程的 process ID</li>
+<li>fork 出错会返回 -1</li>
+</ul>
+<p><strong>fork 的行为</strong></p>
+<ul>
+<li>立即复制状态机：包括所有信息的完整拷贝
+<ul>
+<li>每一个字节的内存</li>
+<li>PCB 里的信息</li>
+</ul>
+</li>
+<li>注意，不只是地址空间的对象被复制了，PCB ⾥的对象，如打开的⽂件描述符号也被⼀并复制</li>
+</ul>
+<p>文件描述符</p>
+<ul>
+<li>⼀个指向操作系统内对象的 “指针“
+<ul>
+<li>对象只能通过操作系统允许的方法访问</li>
+<li>从 0 开始编号 (0, 1, 2 分别是 stdin, stdout, stderr)</li>
+<li>可以通过 open 取得；close 释放； dup 复制；</li>
+<li>对于数据⽂件，⽂件描述符会 “记住” 上次访问⽂件的位置</li>
+</ul>
+</li>
+</ul>
+<p>事实上，由于存在⽗⼦进程存在⼤量的共享，会造成很多不确定性，真实系统的 fork 的背后的实现是复杂的</p>
+<ul>
+<li>⽐如⽗⼦进程之间的 process id 是不同的，进程的 parent process id 也是不同的</li>
+<li>⽐如，多线程的进程进⾏ fork 时，只有⼀个线程被复制，就是那个调⽤ fork 的线程</li>
+</ul>
+<p>fork 应用：</p>
+<ul>
+<li>给进程创建“快照”</li>
+<li>主进程 crash 了，启动快照重新执⾏： 有些 bug 可能调整⼀下环境就消失了 (⽐如并发)</li>
+</ul>
+<h2 id="execve">execve</h2>
+<p>很多时候，⽗⼦进程并不是同样的逻辑，⼦进程有⾃⼰的逻辑，⽐如 shell 创建进程并不是为了⼦进程也是⼀个 shell，⽽是“加载”某个可执⾏⽂件进⾏运⾏</p>
+<ul>
+<li>execve 就是这样的系统调⽤</li>
+<li><code>int execve(const char *pathname, char *const argv[], char *const envp[])</code></li>
+<li>其参数中，pathname 是要加载的可执⾏⽂件具体的路径，argv 进程执⾏ 所需要的参数（main 函数同款参数）， envp 是环境变量</li>
+</ul>
+<p><strong>execve 行为</strong><br>
+语义：将当前进程重置成⼀个可执⾏⽂件描述状态机的初始状态</p>
+<ul>
+<li>加载 pathname 指定的可执⾏⽂件（数据段、代码段）</li>
+<li>重新初始化堆和栈</li>
+<li>PCB 中相应的 memory mappings 也会改变</li>
+<li>将 PC 寄存器设置到可执⾏⽂件代码段定义的⼊⼝点，该⼊⼝点最终会调⽤ main 函数</li>
+</ul>
+<p>demo</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/wait.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/types.h&gt;</span></span><br><br><span class="hljs-keyword">extern</span> <span class="hljs-type">char</span> **environ; <span class="hljs-comment">//environment variables of current process</span><br><span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;<br>	type_prompt(); <span class="hljs-comment">// display prompt on the screen</span><br>	read_command(&amp;filename, &amp;parameters); <span class="hljs-comment">//read the input command</span><br>	<span class="hljs-type">int</span> pid = fork();<br>	<span class="hljs-keyword">if</span> (pid == <span class="hljs-number">-1</span>) &#123;<br>		perror(<span class="hljs-string">&quot;fork&quot;</span>);<br>	&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (pid == <span class="hljs-number">0</span>) &#123; <span class="hljs-comment">// Child</span><br>		execve(filename, parameters, environ);<br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-type">int</span> status; <span class="hljs-comment">// Parent</span><br>		waitpid(pid, &amp;status, <span class="hljs-number">0</span>);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>PCB 中的文件描述符呢？<br>
+<img src="2025060790.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>普通文件：</p>
+<ul>
+<li>在地址空间⾥有⼀个相应的 file 变量索引，但你的⼦进程重置了整个地址空间，因此那个⽂件描述符对应的 file 变量也没有了，此时你⽆法 close 这个⽂件了</li>
+<li>这会造成资源的泄漏，当然这些资源（PCB）都会随着进程的终⽌⽽最终被回收，但在运⾏期间还是有⼀些资源的损耗</li>
+<li>可以在创建⽂件时增加⼀个选项 FD_CLOEXEC：close on exec</li>
+</ul>
+<p><em>环境变量</em><br>
+<img src="2025060767-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>写时复制 COW</strong><br>
+fork 后⾯往往跟着 execve 来加载⼦进程，那么 fork 的过程还必要吗？</p>
+<ul>
+<li>事实上，早期的 fork 就是这么⽆脑的复制⽗进程的⼀切，但⼈们发现这个过程是低效的：
+<ul>
+<li>有些内存是只读的 (read-only)，⽐如代码段、共享代码库 (libc)，这些没必要复制</li>
+<li>此外，⽴即执⾏ execve 会加载新的可执⾏⽂件，重置地址空间，因此，之前的内存拷⻉完全没有意义</li>
+</ul>
+</li>
+</ul>
+<p>-&gt; 写时拷⻉</p>
+<ul>
+<li>即两个进程共享同⼀份物理内存</li>
+<li>只有当⼀个进程<em>尝试去写</em>这个物理内存时才会真正在物理内存中<em>复制⼀份副本</em>⽤来给这个进程去写</li>
+<li>问题是，写⾃⼰的内存是⼀个“⽤户态”事件，内核⼜怎么知道呢？
+<ul>
+<li>标记这个共享的内存为“只读”，⼀旦发⽣“写”操作会发⽣<em>权限错误陷入内核</em>，操作系统获知这是⼀个 COW 事件，复制内存</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060714.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>posix_spawn 接口</p>
+<ul>
+<li>创建进程的 API，结合了 fork+execve</li>
+</ul>
+<p><img src="2025060749.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="exit">exit</h2>
+<p>除了创建进程外，进程也需要能够终⽌：清理其所占内存空间（包括代码区、堆、栈），这个过程需要系统调⽤来做</p>
+<ul>
+<li>因为进程这个“实体”就是操作系统抽象出来的，没有操作系统，进程就是⼀ 连串的指令流，没有终⽌的概念（CPU 只会不断的进⾏取指-执⾏的循环)</li>
+</ul>
+<p>Linux 中，进程⼀般有 5 种退出机制</p>
+<ul>
+<li>正常退出： 从 main 函数返回，调⽤库函数 exit，调⽤_exit</li>
+<li>异常退出：调⽤ abort，由信号终⽌</li>
+</ul>
+<p><code>void exit(int status)</code> C 标准库函数，最常用的进程退出函数</p>
+<ul>
+<li>调⽤ atexit () 注册的函数；使得我们可以指定在程序终⽌时执⾏⾃⼰的清理动作。(atexit () 最多可以注册 32 个函数，调⽤顺序与注册顺序相反)</li>
+<li>关闭所有打开的流 (stdio)，这将导致写所有被缓冲的输出</li>
+<li>移除所有的临时⽂件</li>
+<li>最后调⽤_exit () 函数终⽌进程</li>
+</ul>
+<p>return from <code>main()</code></p>
+<ul>
+<li>从 main 函数返回是最常⻅的终⽌⽅式</li>
+<li>main 函数的返回值和调⽤ exit () 的传⼊参数 int status 是同样的语义</li>
+<li>0 是函数是符合预期终⽌，⾮ 0 是函数出现了错误终⽌</li>
+</ul>
+<p><code>_exit()</code></p>
+<ul>
+<li>所有属于这个进程的⽂件描述符都会被关闭</li>
+<li>所有该进程的⼦进程都会被 init 进程接管</li>
+<li>向该进程的⽗进程发送 SIGCHLD 信号，通知该⽗进程其已经终⽌</li>
+<li>注意：_exit () 只会终⽌当前的线程，但 libc 做了⼀层 wrapper，其实真实调⽤ exit_group ()，关闭所有线程</li>
+</ul>
+<p><em>异常退出</em><br>
+<code>abort()</code> 系统调⽤会导致系统异常终⽌</p>
+<ul>
+<li>atexit 注册的函数不会调⽤</li>
+<li>io 流不会关闭</li>
+<li>其⾏为就是产⽣⼀个 SIGABRT 信号发送给调⽤ abort () 的进程，然后改进程就会异常终⽌
+<ul>
+<li>不会被 ignore 掉</li>
+</ul>
+</li>
+</ul>
+<p><strong>信号 Signal</strong><br>
+Linux 操作系统提供了⼀种可以通知进程发⽣了某个事件的机制：信号（Signal），注：不要和并发的 singal 原语混淆，也不要和“信号量”（Semaphore）混淆<br>
+其本质上是对中断的模拟, 命令 kill -l 可以查看有多少信号， man 7 signal 查看信号的具体信息</p>
+<ul>
+<li>发生某个中断事件后，⽤户程序也想获知并处理（⽽不只是在内核态由操作系统透明的处理）</li>
+</ul>
+<p>signal 函数可以注册信号处理函数，只要传⼊相应的信号和函数名即可</p>
+<ul>
+<li>handler 设为 SIG_IGN 时表示忽略这个信号，⽐如 signal (SIGCHLD, SIG_IGN) 就表示忽略掉⼦进程的终⽌信号，此时⼦进程结束会直接被内核完全清除（⽽不必先变为僵⼫进程，然后再被回收</li>
+<li>handler 设为 SIG_DFL 时表示采⽤ linux 默认的处理函数</li>
+</ul>
+<p>有了信号机制，可以完成很多异步的操作：</p>
+<ul>
+<li>⽐如 signal (SIGCHLD， handler)，可以在 handler ⾥进⾏ wait，⽽不是在 main 函数⾥ wait/waitpid 从⽽阻塞⽗进程</li>
+<li>⽐如 signal (SIGIO, handler) 可以不⽤等待 I/O 完成，可以先做其他事情，如果 ⽂件描述符所指向的数据传输完成，会产⽣ SIGIO 的事件，就可以通过回调函数 handler 来处理</li>
+<li>信号也是⼀种进程间通信（Inter-Process Communication, IPC）的机制之⼀</li>
+<li>此外还有消息传递、共享内存、管道等</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>进程的概念、生命周期<br>
+三个重要的系统调用 fork exec exit</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">2025春-操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>操作系统-09虚拟化-进程管理</div>
+      <div>https://astronautbase.github.io/2025/08/25/操作系统-09虚拟化-进程管理/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-10%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%B0%83%E5%BA%A6/" title="操作系统-10虚拟化-调度">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">操作系统-10虚拟化-调度</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-08%E5%B9%B6%E5%8F%91-%E5%B9%B6%E5%8F%91bugs/" title="操作系统-08并发-并发bugs">
+                        <span class="hidden-mobile">操作系统-08并发-并发bugs</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

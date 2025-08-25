@@ -1,0 +1,1151 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="物理内存：没有其他意义，只是存储（易失）运⾏信息的⼀个物理介质  连续字节&#x2F;字（Byte）的数组，每⾏都有⾃⼰的地址（ 位地址总共有个字节） 通过地址可以写&#x2F;读相应的字节 地址和数据分别通过地址总线和数据总线进⾏传播  保护 有了进程抽象，内存就有了“语义”  其代表了当前进程的“状态”！ ⽽这个“状态”应该遵循状态机（即进程）的规约⽽改变  违背规约就会出现“undefined state”，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统-11虚拟化-内存管理">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="物理内存：没有其他意义，只是存储（易失）运⾏信息的⼀个物理介质  连续字节&#x2F;字（Byte）的数组，每⾏都有⾃⼰的地址（ 位地址总共有个字节） 通过地址可以写&#x2F;读相应的字节 地址和数据分别通过地址总线和数据总线进⾏传播  保护 有了进程抽象，内存就有了“语义”  其代表了当前进程的“状态”！ ⽽这个“状态”应该遵循状态机（即进程）的规约⽽改变  违背规约就会出现“undefined state”，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060823.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060866.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060886.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060808.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060821.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060806.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060870.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060834.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060827.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060814.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060848.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060820.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060827-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060883.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060895.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060841.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060869.png">
+<meta property="article:published_time" content="2025-08-25T12:43:30.000Z">
+<meta property="article:modified_time" content="2025-08-25T12:48:02.912Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-11%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/2025060823.png">
+  
+  
+  
+  <title>操作系统-11虚拟化-内存管理 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="操作系统-11虚拟化-内存管理"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 20:43" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          36 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">操作系统-11虚拟化-内存管理</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>物理内存：没有其他意义，只是存储（易失）运⾏信息的⼀个物理介质</p>
+<ul>
+<li>连续字节/字（Byte）的数组，每⾏都有⾃⼰的地址（ 位地址总共有个字节）</li>
+<li>通过地址可以写/读相应的字节</li>
+<li>地址和数据分别通过地址总线和数据总线进⾏传播</li>
+</ul>
+<p><strong>保护</strong><br>
+有了进程抽象，内存就有了“语义”</p>
+<ul>
+<li>其代表了当前进程的“状态”！</li>
+<li>⽽这个“状态”应该遵循状态机（即进程）的规约⽽改变
+<ul>
+<li>违背规约就会出现“undefined state”， 从⽽导致“undefined behavior”, 因此作为状态机的管理者—操作系统，必须提供出现违背规约之后的保护</li>
+</ul>
+</li>
+</ul>
+<p>哪些“状态”的改变操作是⾮法的呢？</p>
+<ul>
+<li>修改别的状态机的状态！
+<ul>
+<li>需要界定状态机的<em>边界</em>（哪些内存是⾃⼰的，哪些是别的状态机的）</li>
+</ul>
+</li>
+<li>增加状态机的⼤⼩时，占⽤的额外空间还处于“有⽤”状态
+<ul>
+<li>我们只能申请“空闲”的内存来增加状态机的⼤⼩，⽽不能使⽤尚被占⽤的空间 （⽆论是被别的进程还是⾃⼰占⽤），因此得维护什么是“<em>空闲</em>”内存</li>
+</ul>
+</li>
+<li>不遵守状态机的内部状态的读、写权限
+<ul>
+<li>需要标记内存块的<em>权限</em>，并且能 assert 相应的读写是否符合权限</li>
+</ul>
+</li>
+</ul>
+<p><em>使用物理地址的缺点</em></p>
+<ul>
+<li>物理地址对应⽤是可知的，导致：
+<ul>
+<li>⼀个应⽤会因其他应⽤的加载⽽受到影响 (loader 加载器压⼒骤增)</li>
+<li>⼀个应⽤可通过⾃身的内存地址，猜测出其他应⽤的加载位置</li>
+</ul>
+</li>
+<li>是否可以让应⽤看不⻅物理地址？
+<ul>
+<li>“看不⻅”，指应⽤对物理地址不可知</li>
+<li>⼀个进程不⽤关⼼其他进程占了什么地址，不受其他进程的影响</li>
+<li>看不⻅其他进程的信息，带来更强的隔离和保护能⼒</li>
+</ul>
+</li>
+</ul>
+<p>—&gt;</p>
+<p><em>虚拟内存抽象</em></p>
+<p>以虚拟内存抽象为核⼼的内存管理</p>
+<ul>
+<li>CPU:⽀持虚拟内存功能，新增了虚拟地址空间（通过 Memory Management Unit, MMU 单元）</li>
+<li>操作系统: 配置并使能虚拟内存机制</li>
+<li>所有软件: 均使⽤虚拟地址，⽆法直接访问物理地址</li>
+</ul>
+<p>虚拟/逻辑地址（ Virtual/Logical Address）</p>
+<ul>
+<li>虚拟内存抽象下，程序使⽤虚拟地址访问主存
+<ul>
+<li>虚拟地址会被硬件&quot;⾃动地&quot;翻译成物理地址</li>
+</ul>
+</li>
+<li>每个应⽤程序拥有独⽴的虚拟地址空间
+<ul>
+<li>应⽤程序认为⾃⼰独占整个内存 (透明性)</li>
+<li>应⽤程序不再看到物理地址</li>
+<li>应⽤加载时不⽤再为地址增加⼀个偏移量</li>
+</ul>
+</li>
+</ul>
+<p><strong>地址翻译</strong><br>
+翻译就是⼀个函数 : 其将 ⟨pid, virtual address⟩ 映射到 physical address</p>
+<p>优点，可以很⾃然地提供：</p>
+<ul>
+<li>保护：让不同的进程映射到不同的区域即可（即两个进程的映射函数的值域不相交）</li>
+<li>重定位：进程被映射到的物理地址可以在运⾏时不断变化（运⾏时，不是编译时，因此是动态重定位</li>
+<li>数据共享：将不同进程的不同虚拟地址映射到同⼀个物理地址</li>
+<li>连续空间假象：虚拟地址中的连续地址空间（编程友好），映射到物理内存可以不必连续</li>
+</ul>
+<h2 id="连续内存分配">连续内存分配</h2>
+<p>最简单的内存分配⽅式，进程（包括操作系统内核）被分配⼀个连续的物理内存地址<br>
+利⽤基址和界限机制隔离⽤户进程之间的地址空间，以及防⽌⽤户进程修改操作系统的代码和数据<br>
+多个进程时需要将物理内存进⾏分割，每个进程占据⼀个连续的物理内存分区，有两种<em>分割⽅式</em></p>
+<ul>
+<li><em>固定分区</em>：物理内存⼀开始就被分为“固定”⼤⼩的区域，各个区域的⼤⼩可以相同，也可以不同，⼀个进程选择⼀个空闲区域进⾏分配</li>
+<li><em>可变分区</em>：物理内存区域⼤⼩和数量是可变的，根据进程的具体需要分配相应的空间
+<ul>
+<li>需要维护⼀个空闲的内存集合，开始是整个巨⼤的空间，但随着进程的分配和回收，内存会存在很多⼤⼩不⼀的空闲的“孔”</li>
+</ul>
+</li>
+</ul>
+<p>固定分区的问题：如果⼀个进程所需要的空间⾮常⼤，这种固定分区就不适⽤了</p>
+<ul>
+<li>此外，进程的 size 各种各样，但只能选择⼀个分区存放，这个分区⼤于进程的部分就是⼀个内部碎⽚（internal fragmentation），其⽆法被其他进程占 ⽤，⾃⼰也不⽤</li>
+<li>此外，固定的分区数也限制了可以同时放⼊内存的进程数</li>
+</ul>
+<p>可变分区：可以⽀持<em>动态的按需分配</em>空间</p>
+<ul>
+<li>当⼀个进程需要加载到内存时，操作系统从⼀个⾜够⼤的空闲块分配内存（多了的部分进⾏分割（splitting）为剩余的空闲块）</li>
+<li>当进程终⽌时释放其分区，并且与相邻的空闲分区合并（合并， coalescing）</li>
+</ul>
+<p>鉴于⼤多数进程在运⾏时会增⻓，在加载进程时会分配⼀些<em>额外的内存</em>。<br>
+此外，如果给进程所分配的区域⽤完，那么该进程将可能：</p>
+<ul>
+<li>被移动到⼀个有⾜够空间的空闲区域中</li>
+<li>被交换（Swap）出内存（⾄磁盘），直到能够创建⼀个⾜ 够⼤的空洞</li>
+<li>或者直接被终⽌</li>
+</ul>
+<h3 id="碎片">碎片</h3>
+<p>指⽆法被分配的未使 ⽤内存</p>
+<ul>
+<li>外部碎⽚（空洞）：由于分散的⼩的不连续的空闲空间导致的内存浪费，发⽣在分区之间， 通常是由于进程的不断加载和释放造成</li>
+<li>内部碎⽚：由于分区⼤⼩和加载的进程⼤⼩之间的差异（即进程⼩于分配的分区）导致的内存浪费，发⽣在分区内</li>
+</ul>
+<p>外部碎片的处理方法：</p>
+<ul>
+<li>进程终⽌或暂时交换出磁盘，可以释放内存，可能会合并⼀些碎⽚形成⼤的可分配区域</li>
+<li>通过紧缩（compaction）减少外部碎⽚化
+<ul>
+<li>重排内存内容以将所有空闲内存放在⼀起</li>
+<li>时间复杂度较⾼（⼀般在系统实在没有内存的情况下才会做，内存分配 slow path 的⼀部分）</li>
+</ul>
+</li>
+</ul>
+<h3 id="空闲内存管理">空闲内存管理</h3>
+<p>为了实现动态可变分区内存分配，操作系统应维护以下信息：</p>
+<ul>
+<li>已分配的分区</li>
+<li>空闲的分区（空洞）</li>
+</ul>
+<p>⼀种简单的办法：Bitmap</p>
+<ul>
+<li>内存被划分为分配单元（⼏字节到⼏千字节）</li>
+<li>每个分配单元对应位图中的⼀位，如果该单元空闲则该位为 0，如果被占⽤则该位为 1（或反过来）</li>
+</ul>
+<p>⼀个更加常⽤的做法：空闲内存链表<br>
+我们还需要<em>跟踪已分配区域的⼤⼩</em> ‣ 这样 <code>free (*p)</code> 时才能正确的返回⼀个正确的空闲结点</p>
+<ul>
+<li>⽅法：每次多 malloc ⼀点空间记录元信息</li>
+</ul>
+<h3 id="基本分配策略">基本分配策略</h3>
+<p>不同的策略会影响分配和回收的性能和有效性（⽐如碎⽚数量）</p>
+<ul>
+<li>Best-fit：分配最⼩的⾜够⼤的空闲区域（尽可能物尽其⽤）, 需要遍历整个列表
+<ul>
+<li>但可能导致产⽣微⼩且⽆⽤的外部碎⽚</li>
+</ul>
+</li>
+<li>Worst-fit：分配最⼤的空闲区域
+<ul>
+<li>剩余的部分最⼤，可以为其他进程所占⽤，⽽不是形成碎⽚，但同样遍历整个列表</li>
+</ul>
+</li>
+<li>First-fit：分配第⼀个⾜够⼤的空闲区域（尽可能少搜索）</li>
+<li>Next-fit：跟踪上次适配的位置，并从上次搜索结束的地⽅开始搜索 （尽可能均匀的搜索整个空间）</li>
+</ul>
+<p><img src="2025060823.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>性能还是问题</em></p>
+<ul>
+<li>链表找还是太费⼒了
+<ul>
+<li>其搜索的算法复杂度是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span></li>
+</ul>
+</li>
+<li>更好的数据结构
+<ul>
+<li>⽐如：红⿊树，结点存放的空闲内存的⼤⼩，这样就可以以的复杂度搜索相应的内存</li>
+</ul>
+</li>
+<li>但还有⼀个问题，当 free 之后，如何合并？
+<ul>
+<li>在地址上，相邻的空闲块才能合并，因此空闲的结点链表应该按照地址进⾏链接，然后 free 的时候扫描整个链表</li>
+<li>有没有更加⽅便的合并？</li>
+</ul>
+</li>
+</ul>
+<h3 id="伙伴系统-Buddy-System">伙伴系统 Buddy System</h3>
+<p><img src="2025060866.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060886.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>伙伴系统的好处在于<em>合并效率⾼</em>：</p>
+<ul>
+<li>⽐如如果将这个 21KB 的块归还给空闲列表
+<ul>
+<li>分配程序会检查“伙伴”32KB 是否空闲。</li>
+<li>如果是，就合⼆为⼀，变成 64KB 的块。然后会检查这个 64KB 块的伙伴是否空闲，如果是，就合并这两块。</li>
+<li>这个递归合并过程继续上溯，直到合并整个内存区域，或者某⼀个块的伙伴还没有被释放</li>
+</ul>
+</li>
+</ul>
+<p>伙伴的位置⾮常容易得到（其地址和伙伴只有⼀位不同，⽽正是这⼀位决定了它们在整个伙伴树中的层次）</p>
+<p>Buddy System 已经是 linux 内部分配“⼤”粒度的连续的物理⻚⾯的⽅法了<br>
+但还是存在⼀些问题：</p>
+<ul>
+<li>内部碎⽚
+<ul>
+<li>只允许分配 2 的整数次幂⼤⼩的空闲块（实际上，伙伴系统分配的最⼩单位是 4K，即⼀个物理⻚），因此如果不是 2 的整数次幂的⼤⼩，会有内部碎⽚ -</li>
+<li>⽐如刚刚的例⼦中有 32K-21K ⽆法使⽤（属于该进程，但该进程没有使⽤ 他们，也不能被其他进程使⽤）</li>
+</ul>
+</li>
+</ul>
+<h3 id="Segregated-List-Slab-分配器">Segregated List (Slab) 分配器</h3>
+<p>操作系统⾥⾯的结构体⼤⼩常为⼏⼗、⼏百字节</p>
+<ul>
+<li>Buddy System 来分配的话会产⽣⼤量的碎⽚</li>
+</ul>
+<p>经验观察：</p>
+<ul>
+<li>系统频繁分配的对象⼤⼩相对⽐较较⼩且固定
+<ul>
+<li>⼩对象分配/回收的 scalability 是 System 内存分配的主要瓶颈</li>
+</ul>
+</li>
+</ul>
+<p>Slab 分配器</p>
+<ul>
+<li>目标：快速分配小内存对象</li>
+<li>解决方案：
+<ul>
+<li>从伙伴系统获得大块内存</li>
+<li>进一步细分成固定大小的小块内存进行管理</li>
+<li>块大小通常是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> 个字节（可额外增加特殊大小）</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060808.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060821.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>Fast path</p>
+<ul>
+<li>Per CPU 从当前 slab 中取出⼀个适合⼤⼩的块（快速，没有和其他 CPU 的竞争）</li>
+</ul>
+<p>low path</p>
+<ul>
+<li>需要从⼀个全局的 partial ⾥去找⼀个作为当前的 slab，不巧的话（paritial ⾥也没空闲内存），甚⾄需要从 buddy system ⾥重新分配连续空间，再次分割为可⽤的 slab</li>
+</ul>
+<p><em>连续内存分配的问题</em></p>
+<ul>
+<li>如果直接分配给进程内存的话，stack 和 heap 中间的部分都被浪费了
+<ul>
+<li>内部碎片无法避免</li>
+</ul>
+</li>
+<li>⽆法和其他进程共享内存（⽐如代码和 glibc）
+<ul>
+<li>主要是保护机制粗糙，整体空间的保护，没有精细到具体的部分内存</li>
+</ul>
+</li>
+</ul>
+<h2 id="分段-Segment">分段 Segment</h2>
+<p>⽤户视⻆的内存管理</p>
+<ul>
+<li>将程序视为⼀组段（segments）</li>
+<li>段是虚拟内存空间的连续区域，是⼀个逻辑单元
+<ul>
+<li>例如代码段、栈、堆等</li>
+<li>按照这样的段分配内存</li>
+</ul>
+</li>
+</ul>
+<p>每个段独⽴映射到物理内存中的⼀组连续地址</p>
+<ul>
+<li>没有特定的顺序</li>
+<li>不需要映射未使用的虚拟地址
+<ul>
+<li>可以消除内部碎片</li>
+</ul>
+</li>
+<li>不同的段可以独立增长或缩减</li>
+</ul>
+<p><em>分段底层机制</em><br>
+虚拟地址空间分成若干个不同大小的段</p>
+<ul>
+<li>段表（每个进程对应⼀个）存储着每个分段的信息（由段号索引），可供 MMU 查询表
+<ul>
+<li>段基址（Segment Base）：段在内存中所在的起始物理地址</li>
+<li>段界限（Segment Bound）：段的⼤⼩</li>
+</ul>
+</li>
+<li>虚拟地址分为：段号 + 段内偏移地址</li>
+</ul>
+<p>物理内存也是以段为单位进行分配</p>
+<ul>
+<li>虚拟地址空间中相邻的段，对应的物理内存可以不相邻</li>
+</ul>
+<p><img src="2025060806.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>支持共享</em></p>
+<ul>
+<li>多个虚拟地址空间可以映射到内存中的同一个段
+<ul>
+<li>比如：只读代码的一个副本在进程间共享，一个可执行文件被加载多次</li>
+<li>也可以用作进程间通信</li>
+</ul>
+</li>
+<li>段表需要增加保护位
+<ul>
+<li>指示程序是否具有相应段的读/写/执行权限</li>
+</ul>
+</li>
+<li>每个进程仍然任务它在访问自己的私有内存（透明性）</li>
+</ul>
+<p>OS 对段表机制的支持</p>
+<ul>
+<li>操作系统应在上下⽂切换时保存和恢复段表（指向段表的寄存器）</li>
+<li>当段增⻓或缩⼩时，操作系统应进⾏交互（更新段表）</li>
+<li>创建新的地址空间时，操作系统应在物理内存中为其段找到空间
+<ul>
+<li>操作系统维护着空闲内存块</li>
+</ul>
+</li>
+<li>由于段的长度各不相同，内存分配是一个动态内存分配问题
+<ul>
+<li>需要分配和合并</li>
+</ul>
+</li>
+</ul>
+<p><em>分段机制的问题</em></p>
+<ul>
+<li>分配的粒度太粗，随着时间的推移会产⽣外部碎⽚</li>
+<li>如果是⼀个⼤但使⽤稀疏的堆?</li>
+<li>如果地址空间的使⽤模型与段设计不匹配怎么办？</li>
+</ul>
+<h2 id="分页-Paging">分页 Paging</h2>
+<p>更细粒度的内存管理</p>
+<ul>
+<li>物理内存被划分成连续的、等⻓的物理⻚（也叫帧 frame）
+<ul>
+<li>⼤⼩⼀般为 2 的幂，⽐如默认是 4KB</li>
+</ul>
+</li>
+<li>虚拟内存也被划分为相同⼤⼩虚拟块—虚拟⻚（Page）</li>
+<li>任意虚拟⻚可以映射到任意物理⻚
+<ul>
+<li>⾮常灵活，不需要是连续的空间</li>
+</ul>
+</li>
+<li>由于都是按照⻚为单位分配内存
+<ul>
+<li>没有外部碎⽚</li>
+</ul>
+</li>
+</ul>
+<p>虚拟地址分为：</p>
+<ul>
+<li>虚拟页号 + 页内偏移</li>
+</ul>
+<p>每个进程都有一个页表 Page Table，每个页表项包含一个物理页号，也叫物理帧号，指示每个页在物理内存中的基地址</p>
+<p><img src="2025060870.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>页表</strong><br>
+⻚表最简单的形式称为线性⻚表（⼀个数组），存储在物理内存中<br>
+⻚表项（PTE）的具体布局⾼度依赖于机器</p>
+<ul>
+<li>需要足够的位来标识</li>
+<li>应包括一些控制位</li>
+</ul>
+<p><em>页表项中常见的控制位</em></p>
+<ul>
+<li>有效位（Valid bit）：转换是否有效（⽀持稀疏空间）</li>
+<li>存在位（Present bit）：⻚⾯是否实际存储在内存中</li>
+<li>保护位（Protection bits）：⻚⾯是否可以被读取、写⼊或执⾏</li>
+<li>引⽤位（Reference bit）：⻚⾯是否已被访问</li>
+<li>脏（修改）位（Dirty/modified bit）：⻚⾯⾃被载⼊内存以来是否已被修改</li>
+</ul>
+<p><img src="2025060834.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="2025060827.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>单级页表的问题</em><br>
+<img src="2025060814.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>解决方案 -&gt; 多级页表<br>
+<img src="2025060848.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>页表页</p>
+<ul>
+<li>每级⻚表有若⼲离散的⻚表⻚
+<ul>
+<li>每个页表页占用一个物理页</li>
+</ul>
+</li>
+<li>第 0 级（顶层）页表有且仅有一个页表页
+<ul>
+<li>页表基地址寄存器存储的是该页的物理地址</li>
+</ul>
+</li>
+<li>每项为 8 个字节
+<ul>
+<li>总共 4096/8 = 512 项，⽤于存储物理地址和权限</li>
+</ul>
+</li>
+<li>可以不只是两级的⻚表</li>
+</ul>
+<p>问题：太多虚拟页了，而物理页是少的</p>
+<p><strong>倒排页表</strong></p>
+<p>不再为每个进程分别维护多个⻚表，⽽是保留⼀个单⼀的⻚表，每个物理⻚对应⼀个条目<br>
+每个⻚表条⽬包括：</p>
+<ul>
+<li>使⽤该物理⻚的进程 (Pid)</li>
+<li>该进程的哪个虚拟⻚映射到该物理⻚</li>
+</ul>
+<p>减少了存储⻚表所需的内存，但增加了在发⽣⻚引⽤时查找表所需的时间</p>
+<ul>
+<li>使用哈希表来加速查找</li>
+</ul>
+<p>此外一个问题是无法共享<br>
+<img src="2025060820.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>地址翻译比较</em><br>
+<img src="2025060827-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>段页<br>
+<img src="2025060883.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>多级页表不是完美的</p>
+<ul>
+<li>多级⻚表的设计是典型的⽤时间换空间的设计
+<ul>
+<li>能够减⼩⻚表所占空间</li>
+<li>但是增加了访存次数 (逐级查询，级数越多越慢)
+<ul>
+<li>即使是单极页表，也需要访存两次才能真正得到物理内存上的数据</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Translation-Look-aside-Buffers-TLB-地址转换旁路缓冲">Translation Look-aside Buffers TLB 地址转换旁路缓冲</h2>
+<p>如何加速分⻚的地址转换？</p>
+<ul>
+<li>观察：⼤多数程序倾向于对少量⻚⾯进⾏⼤量引⽤</li>
+<li>使⽤⼀种特殊的快速查找硬件缓存，称为翻译后备缓冲器（TLB）或联想存储器（在内存管理单元中）</li>
+</ul>
+<p>缓存最近地址转换</p>
+<ul>
+<li>如果 TLB 命中，直接应⽤转换（fast path）</li>
+<li>否则，如果 TLB 未命中，则在⻚表中查找映射（⻚表遍历），并更新 TLB (slow path)</li>
+</ul>
+<p><img src="2025060895.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="2025060841.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>局部性原理</strong><br>
+TLB 背后的理念是利⽤指令和数据引⽤的局部性</p>
+<ul>
+<li>时间局部性：如果某个数据被访问过，那么在不久的将来它可能会再次被访问</li>
+<li>空间局部性：如果某个数据被访问过，那么它附近的数据在不久的将来也可能会被访问。</li>
+</ul>
+<p>TLB 通常很⼩，包含 64 到 1024 个条⽬</p>
+<ul>
+<li>存储最可能被多的选中的地址翻译才能⾼效发挥 TLB</li>
+<li>⽀持某些条⽬可以固定下来以便永久快速访问</li>
+</ul>
+<p><img src="2025060869.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>处理 TLB Miss</strong><br>
+在 TLB 缺失时，值被加载到 TLB 中，以便下次更快地访问。<br>
+但如果 TLB 已满，应该替换谁呢？</p>
+<ul>
+<li>先进先出</li>
+<li>最近最少引用 LRU</li>
+<li>随机</li>
+</ul>
+<p>谁来处理？</p>
+<ul>
+<li>硬件处理（如 x86 这样的 CISC 架构）
+<ul>
+<li>当 TLB 缺失时，硬件进⾏⻚⾯遍历，获取⻚表项，并将其插⼊ TLB</li>
+<li>硬件必须确切地知道⻚表在内存中的位置（通过 PTBR 寄存器），以及它们的确切格式</li>
+<li>更加迅速，对系统软件透明地完成</li>
+</ul>
+</li>
+<li>软件处理的 TLB Miss（如 MIPS 这样的 RISC 架构）
+<ul>
+<li>当 TLB 缺失时，硬件会引发异常（TLB 故障）</li>
+<li>操作系统内部的代码处理 TLB 缺失（返回指令与系统调⽤返回不同）</li>
+<li>更加灵活（如可以定制替换策略等）</li>
+</ul>
+</li>
+</ul>
+<p><em>TLB 一致性</em></p>
+<ul>
+<li>上下⽂切换时，旧进程的虚拟到物理地址的转换应该不再有效，否则就会出现同样的虚拟地址映射到不同物理地址的问题，解决⽅案有两种：
+<ul>
+<li>清空 TLB：简单地将所有有效位设置为 0</li>
+<li>带标记的 TLB：在每个 TLB 条⽬中添加⼀个地址空间标识符（ASID）字段， 该字段唯⼀地标识每个进程，为该进程提供地址空间保护</li>
+</ul>
+</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">2025春-操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>操作系统-11虚拟化-内存管理</div>
+      <div>https://astronautbase.github.io/2025/08/25/操作系统-11虚拟化-内存管理/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-12%E8%99%9A%E6%8B%9F%E5%8C%96-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E7%BB%AD/" title="操作系统-12虚拟化-内存管理(续)">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">操作系统-12虚拟化-内存管理(续)</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-10%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%B0%83%E5%BA%A6/" title="操作系统-10虚拟化-调度">
+                        <span class="hidden-mobile">操作系统-10虚拟化-调度</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

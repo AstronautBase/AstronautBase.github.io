@@ -1,0 +1,845 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="软件工程：应用系统的、规范的、可量化的方法来开发、运行和维护软件，即将工程应用到软件 管理团队方法：建立团队章程、持续成功、和谐沟通、不断总结、避免团队杀手 质量保障措施：需求&#x2F;体系结构&#x2F;详细设计&#x2F;构造&#x2F;测试 + 评审&#x2F;度量&#x2F;测试 配置管理：标识配置项 版本管理 变更控制 配置审计 状态报告 软件发布管理 需求：  用户为了解决问题或达到某些目标所需要的条件或能力 系统或系统部件为了满足合同、标准">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件工程与计算2-记忆">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%8E%E8%AE%A1%E7%AE%972-%E8%AE%B0%E5%BF%86/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="软件工程：应用系统的、规范的、可量化的方法来开发、运行和维护软件，即将工程应用到软件 管理团队方法：建立团队章程、持续成功、和谐沟通、不断总结、避免团队杀手 质量保障措施：需求&#x2F;体系结构&#x2F;详细设计&#x2F;构造&#x2F;测试 + 评审&#x2F;度量&#x2F;测试 配置管理：标识配置项 版本管理 变更控制 配置审计 状态报告 软件发布管理 需求：  用户为了解决问题或达到某些目标所需要的条件或能力 系统或系统部件为了满足合同、标准">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-08-25T11:39:34.000Z">
+<meta property="article:modified_time" content="2025-08-25T11:40:59.221Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="软工">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>软件工程与计算2-记忆 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="软件工程与计算2-记忆"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 19:39" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">软件工程与计算2-记忆</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>软件工程：应用系统的、规范的、可量化的方法来开发、运行和维护软件，即将工程应用到软件</p>
+<p>管理团队方法：建立团队章程、持续成功、和谐沟通、不断总结、避免团队杀手<br>
+质量保障措施：需求/体系结构/详细设计/构造/测试 + 评审/度量/测试<br>
+配置管理：标识配置项 版本管理 变更控制 配置审计 状态报告 软件发布管理</p>
+<p>需求：</p>
+<ol>
+<li>用户为了解决问题或达到某些目标所需要的条件或能力</li>
+<li>系统或系统部件为了满足合同、标准、规范或其它正式文档所规定的要求而需要具备的条件或能力</li>
+<li>对 1 或 2 中的一个条件或一种能力的一种文档化表述</li>
+</ol>
+<p>需求规格说明</p>
+<ul>
+<li>方便交流；软件需求需要进行广泛交流，所以要把需求文档化</li>
+<li>方便任务分配，制定工作计划，进行跟踪和度量</li>
+<li>在书写需求规格过程中，才把问题分析的结果转化为系统级需求，方便明确需求</li>
+</ul>
+<p>软件设计：关于软件对象的设计，是一种设计活动。既指软件对象实现的规格说明，又指这个规格说明产生的过程。</p>
+<p>体系结构的概念：部件，连接件，配置</p>
+<ul>
+<li>部件：承载系统的主要功能，包括处理和数据</li>
+<li>连接件：定义了部件间的交互</li>
+<li>配置：部件与连接件之间的关联方式</li>
+</ul>
+<p>体系结构风格：</p>
+<ol>
+<li>主程序子进程
+<ol>
+<li>优点：流程清晰，易于理解；强控制性</li>
+<li>缺点：强耦合，非常依赖交互方的接口规格，难以修改和复用；限制部件间的数据交互，产生公共耦合</li>
+</ol>
+</li>
+<li>面向对象
+<ol>
+<li>优点：内部实现的可修改性；易开发、易理解、易复用</li>
+<li>缺点：接口、标识的耦合性；难以理解、高耦合性以及数据的不一致视图</li>
+</ol>
+</li>
+<li>分层
+<ol>
+<li>优点：易于理解；支持并行开发；可复用性和内部可修改性</li>
+<li>缺点：交互协议难以修改；性能损失；难以确定层次数量和粒度</li>
+</ol>
+</li>
+<li>MVC
+<ol>
+<li>优点：易开发；视图和控制的可修改性；适宜于网络系统开发的特征</li>
+<li>缺点：复杂性；模型修改困难</li>
+</ol>
+</li>
+</ol>
+<p>体系结构设计过程</p>
+<ol>
+<li>分析关键需求和项目约束</li>
+<li>选择体系结构风格</li>
+<li>进行体系结构逻辑设计</li>
+<li>进行体系结构（实现）设计</li>
+<li>完善体系结构设计</li>
+<li>添加构件接口</li>
+<li>迭代 3-6</li>
+</ol>
+<p>包的设计原则</p>
+<ol>
+<li>重用发布等价原则 REP</li>
+<li>共同封闭原则 CCP</li>
+<li>共同重用原则 CRP</li>
+<li>无环依赖原则 ADP</li>
+<li>稳定依赖原则 SDP</li>
+<li>稳定抽象原则 SAP</li>
+</ol>
+<p>人机交互-可用性：</p>
+<ol>
+<li>易学性</li>
+<li>效率</li>
+<li>易记性</li>
+<li>出错率</li>
+<li>主观满意度</li>
+</ol>
+<p>界面设计注意事项</p>
+<ol>
+<li>简洁设计 7±2 原则</li>
+<li>一致性设计 精神模型</li>
+<li>低出错率设计</li>
+<li>易记性设计</li>
+<li>可视化设计要点</li>
+<li>所见即所得</li>
+</ol>
+<p>控制风格</p>
+<ol>
+<li>集中式</li>
+<li>委托式</li>
+<li>分散式</li>
+</ol>
+<p>耦合：两个模块之间关系的复杂程度。包括内容、公共、重复、控制、印记、数据<br>
+内聚：一个模块内部的联系的紧密性。包括偶然、逻辑、时间、过程、通信、功能、信息</p>
+<p>信息隐藏：每个模块都隐藏了重要设计决策的实现，因此只有该模块的组成部分才能知道详细信息。</p>
+<p>模块化的原则</p>
+<ol>
+<li>全局变量是有害的</li>
+<li>让代码清晰</li>
+<li>不要重复</li>
+<li>面向接口编程</li>
+<li>迪米特法则</li>
+<li>接口隔离原则</li>
+<li>里氏替换原则</li>
+<li>组合代替继承</li>
+<li>单一责任原则</li>
+</ol>
+<p>OCP 开闭原则：对扩展开放，对修改关闭<br>
+DIP 依赖倒置原则：细节依赖于抽象</p>
+<p>设计模式：</p>
+<ol>
+<li>策略模式：减少耦合、依赖倒置</li>
+<li>抽象工厂模式：职责抽象、接口重用</li>
+<li>单件模式：信息隐藏、职责抽象</li>
+<li>迭代器模式：减少耦合、依赖倒置</li>
+</ol>
+<p>重构：修改软件系统的严谨方法，它在不改变代码外部表现的情况下改进其内部结构<br>
+测试驱动开发：完成测试代码之后，程序员再编写程序代码，并在编程中重复执行测试代码，以验证程序代码的正确性。<br>
+结对编程：两位程序员并排工作，在相同的设计，算法，代码或测试上进行协作。</p>
+<p>黑盒测试：将测试对象作为一个黑盒子，完全基于输入输出数据来判断测试对象的正确性</p>
+<ul>
+<li>等价类划分 边界值分析 决策表 状态转换</li>
+</ul>
+<p>白盒测试：将测试对象看做透明的，不关心测试对象的规格，而是按照测试对象内部的程序结构来设计测试用例进行测试工作</p>
+<ul>
+<li>语句覆盖 条件覆盖 路径覆盖</li>
+</ul>
+<p>软件维护</p>
+<ul>
+<li>问题/环境发生变化 产品存在缺陷</li>
+</ul>
+<p>开发可维护软件的方法</p>
+<ul>
+<li>考虑软件的可变更性</li>
+<li>为降低维护困难而开发</li>
+</ul>
+<p>演化式生命周期模型：初始开发 演化 服务 逐步淘汰 停止<br>
+逆向工程：分析目标系统，标识系统的部件及其交互关系，并使用其他形式或者更高层的抽象创建系统表现的过程<br>
+再工程：检查和改造一个目标系统，用新的模式及其实现复原该目标系统</p>
+<p>软件生命周期模型：人们将软件从生产到报废的生命周期分割为不同阶段，各个阶段形成明确、连续的顺次过程，这些阶段划分就被称为软件生命周期模型。</p>
+<ul>
+<li>软件演化生命周期模型：需求工程-软件设计-软件实现-软件测试-软件交付-软件维护</li>
+</ul>
+<p>软件开发过程模型</p>
+<ol>
+<li>构建修复模型
+<ol>
+<li>缺点：没有规范、没有分析需求</li>
+<li>适用：小规模 个人开发</li>
+</ol>
+</li>
+<li>瀑布模型
+<ol>
+<li>允许活动出现反复和迭代，重点在于要求每个活动的结果必须要进行验证</li>
+<li>优点：为软件开发活动定义了清晰的阶段划分</li>
+<li>缺点：对文档期望过高；线性假设局限性；里程碑颗粒过粗</li>
+</ol>
+</li>
+<li>增量迭代模型
+<ol>
+<li>在项目开始时完成对项目前景和范围的界定，然后将后续开发活动组织为多个迭代、并行的瀑布开发模式</li>
+<li>优点：符合软件开发实践情况；渐进交付加强用户反馈；缩短开发时间</li>
+<li>缺点：需要完备清晰的项目前景和范围</li>
+<li>适用：大规模软件系统</li>
+</ol>
+</li>
+<li>演化模型
+<ol>
+<li>将软件开发活动组织为多个迭代、并行的瀑布式开发活动。</li>
+<li>优点：同上</li>
+<li>缺点：在前代基础上进行修改和扩展，容易让后续迭代忽略分析和设计工作，退变为构建修复模式</li>
+<li>适用：不稳定领域的大规模软件系统</li>
+</ol>
+</li>
+<li>原型模型
+<ol>
+<li>将需求开发活动展开为抛弃式原型开发活动和演化式原型开发活动</li>
+<li>优点：加强了与用户的交流；适用于有大量不确定性的新领域</li>
+<li>缺点：开发成本高；不舍得抛弃“抛弃式原型”，使得质量较差的代码进入最终产品</li>
+<li>适用：有大量不确定性的新领域</li>
+</ol>
+</li>
+<li>螺旋模型
+<ol>
+<li>是风险驱动的，完全按照风险解决的方式组织软件开发活动。 充分利用原型方法来解决风险。</li>
+<li>优点：降低风险，减少项目因风险造成的损失</li>
+<li>缺点：原型的缺点；模型过于复杂，不利于管理者依据其组织软件开发活动</li>
+<li>适用：高风险的大规模软件系统开发</li>
+</ol>
+</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%8E%E8%AE%A1%E7%AE%972/" class="category-chain-item">2025春-软件工程与计算2</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AF%E5%B7%A5/" class="print-no-link">#软工</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>软件工程与计算2-记忆</div>
+      <div>https://astronautbase.github.io/2025/08/25/软件工程与计算2-记忆/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-01%E7%BB%AA%E8%AE%BA-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%A6%82%E8%BF%B0/" title="操作系统-01绪论-操作系统概述">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">操作系统-01绪论-操作系统概述</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E4%B8%8E%E8%AE%A1%E7%AE%972-%E5%A4%8D%E4%B9%A0%E6%8F%90%E7%BA%B2/" title="软件工程与计算2-复习提纲">
+                        <span class="hidden-mobile">软件工程与计算2-复习提纲</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

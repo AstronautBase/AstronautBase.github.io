@@ -1,0 +1,1362 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="磁盘中存储的数据  程序数据  可执行文件、动态链接库、应用数据   用户数据  文档、下载、截图   系统数据  配置文件    文件系统 存储和读取本身没有问题，磁盘驱动器就是做这个的 但让应⽤程序直接通过驱动访问存储设备 (1950s)？  程序出 bug 了（不可避免），完全可能弄坏整块磁盘 连带着所有数据，包括操作系统都直接损坏  因此应⽤程序应该“有限制”地访问数据  提供合理的 AP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统-14持久化-文件系统">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="磁盘中存储的数据  程序数据  可执行文件、动态链接库、应用数据   用户数据  文档、下载、截图   系统数据  配置文件    文件系统 存储和读取本身没有问题，磁盘驱动器就是做这个的 但让应⽤程序直接通过驱动访问存储设备 (1950s)？  程序出 bug 了（不可避免），完全可能弄坏整块磁盘 连带着所有数据，包括操作系统都直接损坏  因此应⽤程序应该“有限制”地访问数据  提供合理的 AP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060899.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060884.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060809.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060864-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060829.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060805.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060846.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060814-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060842.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060860.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060896.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060885-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060886-3.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060839.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060852.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060816.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060841-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060878.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060879-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060869-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060875.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060809-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060831.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060847.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060882.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060855.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060873.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060896-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060889.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060883-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060811.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060872.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060837.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060886-4.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060876.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060839-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060840.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060859-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060873-1.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060822.png">
+<meta property="article:published_time" content="2025-08-25T12:59:49.000Z">
+<meta property="article:modified_time" content="2025-08-25T13:06:11.042Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-14%E6%8C%81%E4%B9%85%E5%8C%96-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2025060899.png">
+  
+  
+  
+  <title>操作系统-14持久化-文件系统 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="操作系统-14持久化-文件系统"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 20:59" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          50 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">操作系统-14持久化-文件系统</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>磁盘中存储的数据</p>
+<ul>
+<li>程序数据
+<ul>
+<li>可执行文件、动态链接库、应用数据</li>
+</ul>
+</li>
+<li>用户数据
+<ul>
+<li>文档、下载、截图</li>
+</ul>
+</li>
+<li>系统数据
+<ul>
+<li>配置文件</li>
+</ul>
+</li>
+</ul>
+<h2 id="文件系统">文件系统</h2>
+<p>存储和读取本身没有问题，磁盘驱动器就是做这个的<br>
+但让应⽤程序直接通过驱动访问存储设备 (1950s)？</p>
+<ul>
+<li>程序出 bug 了（不可避免），完全可能弄坏整块磁盘</li>
+<li>连带着所有数据，包括操作系统都直接损坏</li>
+</ul>
+<p>因此应⽤程序应该“有限制”地访问数据</p>
+<ul>
+<li>提供合理的 API 使多个应⽤程序能共享数据</li>
+<li>提供⼀定的隔离，使恶意/出错程序的伤害不能任意扩⼤</li>
+<li>这就是⽂件系统</li>
+</ul>
+<p>⽂件系统是对持久性存储的抽象和接⼝。</p>
+<ul>
+<li>类⽐
+<ul>
+<li>线程抽象：⼀个 CPU → 多个虚拟 CPU，在时间上共享</li>
+<li>虚拟存储：⼀份内存 → 划分给多个虚拟地址空间</li>
+<li>⽂件系统：⼀个物理磁盘 → 多个虚拟磁盘</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060899.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>文件系统</strong></p>
+<ul>
+<li>持久性和命名数据：⽂件和⽬录
+<ul>
+<li>存储在系统中直到显式删除为⽌</li>
+<li>可以通过⽂件系统关联的可读标识符访问</li>
+</ul>
+</li>
+<li>访问和保护：提供打开、读取、写⼊和其他操作；调节不同⽤户对⽂件的访问。</li>
+<li>磁盘管理：公平有效地利⽤磁盘空间
+<ul>
+<li>分配空间给⽂件，并跟踪空闲空间</li>
+<li>快速访问⽂件</li>
+</ul>
+</li>
+<li>可靠性：不得丢失⽂件数据</li>
+</ul>
+<h3 id="文件">文件</h3>
+<p>⽂件是操作系统创建的逻辑存储单元，⽤于存储信息</p>
+<ul>
+<li>可以是数据库、⾳频、视频、⽹⻚等内容。</li>
+<li>它是⼀组数据集合（类型由⽤户定义）</li>
+<li>可以创建、读取、写⼊和删除</li>
+<li>提供了⼀种在磁盘上存储信息并随后读取的抽象机制。</li>
+</ul>
+<p><strong>文件命名</strong><br>
+⽂件的命名规则因系统⽽异</p>
+<ul>
+<li>⻓度和特殊字符</li>
+<li>字⺟⼤⼩写</li>
+</ul>
+<p>⽂件扩展名：例如. txt，. c</p>
+<ul>
+<li>表示⽂件内容的某些类型</li>
+<li>为应⽤程序或操作系统提供⽂件合理操作的提示</li>
+</ul>
+<p><strong>文件类型</strong><br>
+许多操作系统⽀持多种类型的⽂件</p>
+<ul>
+<li>普通⽂件 (‘-’)：包含⽤户信息的⽂件
+<ul>
+<li>ASCII ⽂件，⼆进制⽂件</li>
+</ul>
+</li>
+<li>⽬录 (‘d’)：⽤于维护⽂件系统结构的系统⽂件</li>
+<li>符号链接⽂件（‘l’）</li>
+<li>命名管道⽂件或简称管道⽂件（‘p’）</li>
+<li>块⽂件（‘b’）</li>
+<li>字符设备⽂件（‘c’）</li>
+<li>套接字⽂件（‘s;）</li>
+</ul>
+<p><strong>文件元数据（属性）</strong><br>
+除了⽂件的名称和数据外，操作系统还会保留⽂件的额外信息：</p>
+<ul>
+<li>位置：⽂件在设备上的位置指针</li>
+<li>⼤⼩：⽂件的⼤⼩（当前⼤⼩或最⼤⼤⼩）</li>
+<li>时间：⽂件的创建时间、最近访问时间和最近修改时间</li>
+<li>所有者：⽂件的当前所有者</li>
+<li>保护信息</li>
+</ul>
+<p>⽂件系统应该将⽂件元数据保存在⼀个结构中（⽂件控制块）：</p>
+<ul>
+<li>存储在磁盘上，并且缓存在内存中以加快访问速度</li>
+</ul>
+<p>文件控制块-&gt;unix 中就是 <strong>inode</strong> (index node)</p>
+<p><strong>文件访问</strong></p>
+<p>顺序访问：按顺序读取或写⼊数据</p>
+<ul>
+<li>读取下⼀个/写⼊下⼀个</li>
+<li>最常⻅的访问模式（例如，复制⽂件，编译器读取和写⼊⽂件）</li>
+<li>速度快（可以达到磁盘的峰值传输速率）</li>
+</ul>
+<p>随机（直接）访问：随机寻址任意块</p>
+<ul>
+<li>读取 [n] 写⼊[n] 寻址[n]</li>
+<li>⽂件操作包括块号作为参数</li>
+<li>速度慢（寻址时间和旋转延迟）</li>
+</ul>
+<p><img src="2025060884.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>文件描述符</strong><br>
+⽂件描述符（句柄）：操作系统分配给⼀个进程打开的⽂件的⼀个唯⼀数字 （每个进程私有），⽤于引⽤该⽂件。</p>
+<ul>
+<li>持有该⽂件描述符，可以对对应的⽂件执⾏特定操作</li>
+<li>避免在每次访问时解析⽂件名（在⽬录中搜索⽂件名）和检查权限</li>
+<li>⼀个⽂件可以以不同⽅式多次打开</li>
+</ul>
+<p><img src="2025060809.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>文件偏移</strong><br>
+对于进程打开的每个⽂件，操作系统都会跟踪⼀个⽂件偏移量，该偏移量决定下⼀次读取或写⼊将从何处开始。</p>
+<ul>
+<li>隐式更新：当进⾏ N 字节的读取或写⼊时，N 会被添加到当前偏移量。</li>
+<li>显式更新：使⽤ lseek () 函数。</li>
+</ul>
+<p><strong>打开文件表</strong><br>
+当进程打开⼀个⽂件时，操作系统应该创建⼀些额外的数据结构（在内存中），⽤于存储关于进程打开⽂件的信息。</p>
+<p>每个进程都维护⼀个打开⽂件表</p>
+<ul>
+<li>⼀个由<em>⽂件描述符</em>索引的数组</li>
+<li>表中的每个条⽬跟踪⽂件描述符所引⽤的底层⽂件，当前偏移量以及其他相关细节（例如⽂件⼤⼩、位置、权限等）</li>
+</ul>
+<p><img src="2025060864-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>要打开⼀个⽂件，<em>搜索系统范围的打开⽂件表</em>，以查看⽂件当前是否正在使⽤</p>
+<ul>
+<li>如果没有，搜索⽬录以查找⽂件名，并在系统范围的打开⽂件表中添加⼀个条⽬</li>
+</ul>
+<p>在属于进程的打开⽂件表中创建⼀个打开⽂件的条⽬，并指向系统的打开⽂件表<br>
+增加系统的打开⽂件表中的打开计数</p>
+<ul>
+<li>只有当所有进程关闭⽂件（或退出）时，才可以删除表条⽬</li>
+</ul>
+<p>返回指向每个进程打开⽂件表中条⽬的指针（⽂件描述符）</p>
+<p><strong>文件描述符表 &amp; 打开文件表 &amp; inode 表</strong><br>
+<img src="2025060829.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>两个进程打开相同文件<br>
+<img src="2025060805.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<ul>
+<li>两个进程可以指向同⼀个全局的打开项（如 Fork）</li>
+<li>⼀个进程可以有多个指向同⼀个打开项的⽂件描述符（Dup）</li>
+</ul>
+<h3 id="目录">目录</h3>
+<p>⽂件系统通常有⽬录来跟踪⽂件</p>
+<ul>
+<li>通过将⽬录放在其他⽬录内，⽤户可以构建任意的⽬录树（或⽬录层次结构）<br>
+标识⽂件或⽬录的字符串称为路径</li>
+<li>绝对路径：从根⽬录到⽂件的路径（使⽤ 某种分隔符）</li>
+<li>相对路径：为每个进程提供⼀个当前（⼯ 作）⽬录
+<ul>
+<li>在 Unix 中，每个⽬录中有两个特殊条 ⽬：“.” 和 “…”分别代表当前⽬录和上⼀ 层⽬录</li>
+</ul>
+</li>
+</ul>
+<p>⽬录存储了⽂件名与低级别结构（⽂件控制块 inode）之间的映射</p>
+<ul>
+<li>在 Unix 中，每个⽬录条⽬只是⼀个 <em>⟨⽂件名，inode 号⟩</em> 对</li>
+<li>⽬录被存储为⼀个<em>⽂件</em></li>
+<li>要查找⼀个⽂件，需要找到<em>包含该映射的⽬录</em></li>
+<li>根⽬录是特别的：需要为根⽬录分配⼀个固定的 inode 号</li>
+</ul>
+<p><img src="2025060846.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<em>目录的操作</em></p>
+<p><img src="2025060814-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="共享文件">共享文件</h3>
+<p>通过将⼀个新⽂件名链接到⼀个旧⽂件名，我们可以创建另⼀种引⽤同⼀⽂件的⽅式</p>
+<ul>
+<li>可以为同⼀个⽂件创建多个不同的名称</li>
+<li>⽬录结构变成⼀个有向⽆环图</li>
+<li>有两种链接
+<ul>
+<li>硬链接（Hard link）</li>
+<li>符号链接（Symbolic link）或软链接 (Soft link)</li>
+</ul>
+</li>
+</ul>
+<h4 id="硬链接">硬链接</h4>
+<p>硬链接本质上是 <em>inode 号的别名</em><br>
+因此，当创建⼀个⽂件时，</p>
+<ul>
+<li>⾸先，创建⼀个结构（inode），该结构将跟踪关于⽂件的所有相关信息</li>
+<li>其次，将⼀个⼈类可读的名称链接到该⽂件，并将该链接放⼊⽬录中</li>
+</ul>
+<p>但不能链接到另⼀个⽂件系统上的⽂件</p>
+<ul>
+<li>因为 inode 号只在⼀个⽂件系统内是唯⼀的</li>
+</ul>
+<p>不允许链接到⽬录（简化管理）</p>
+<ul>
+<li>这防⽌了在⽬录层次结构中创建循环</li>
+<li>避免了⽗⽬录的不明确性 - ⽐如如果多个⽗⽬录有指向同⼀⼦⽬录的链接，那么该⽬录中的 “…” 指向什么？</li>
+</ul>
+<h4 id="软链接">软链接</h4>
+<p>符号（软）链接：创建⼀种不同类型的⽂件（链接类型）<br>
+<img src="2025060842.png" srcset="/img/loading.gif" lazyload alt=""><br>
+符号（软）链接是路径名的别名</p>
+<ul>
+<li>可以链接到⽬录，或跨⽂件系统链接</li>
+</ul>
+<p>当需要解析路径名时符号链接被解析</p>
+<ul>
+<li>找到⽬标⽂件的名称，并使⽤新名称打开</li>
+<li>⽬标可以是另⼀个符号链接（递归解析）</li>
+<li>⽐硬链接效率低</li>
+</ul>
+<p>当删除符号链接时，⽬标⽂件保持不变</p>
+<ul>
+<li>当⽬标⽂件被删除时，产⽣引⽤悬空（ dangling reference）</li>
+<li>该链接指向⼀个已不存在的路径名</li>
+</ul>
+<h3 id="文件保护">文件保护</h3>
+<p>⽂件保护是为了防⽌意外和恶意破坏⾏为<br>
+⽂件所有者应该能够控制</p>
+<ul>
+<li>可以做什么？</li>
+<li>谁可以做？</li>
+</ul>
+<p>访问权限的类型</p>
+<ul>
+<li>对于⽂件：read / write / execute</li>
+<li>对于⽬录：list / modify / delete</li>
+<li>对于访问权限本身：更改访问权限 / 给予某⼈访问权限 / 撤销某⼈的访问权限</li>
+</ul>
+<p>访问控制矩阵（Access Control Matrix）：系统访问控制的实现可以视为基于⼀个巨⼤表格，该表格编码了系统中每个⽤户或者⽤户组的所有访问权限<br>
+<img src="2025060860.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="文件系统挂载-Mount">文件系统挂载 Mount</h3>
+<p>⼀个⽂件系统在能被访问之前，必须先进⾏挂载</p>
+<ul>
+<li>从现有⽂件系统中的某个路径（挂载点）创建到挂载⽂件系统的根⽬录的映射
+<ul>
+<li>将多个文件系统统一到一棵树中</li>
+</ul>
+</li>
+<li>在 Linux 上，mkfs 命令可以在块设备上创建⼀个新的⽂件系统，mount 命令可以在当前⽂件系统中的某个⽬录下挂载⼀个⽂件系统。没有任何参数时，mount 命令会显示当前的挂载点.</li>
+</ul>
+<p><img src="2025060896.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>两个关键的抽象</em><br>
+<img src="2025060885-1.png" srcset="/img/loading.gif" lazyload alt=""><br>
+文件系统 &amp; 虚拟内存<br>
+<img src="2025060886-3.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="文件系统实现">文件系统实现</h2>
+<p>我们需要回答如下⼏个问题：</p>
+<ul>
+<li>⽂件和⽬录是怎么存储和组织的？</li>
+<li>磁盘空间如何管理？</li>
+<li>⽂件系统的实现是否⾼效和可靠？</li>
+</ul>
+<h3 id="文件系统的布局">文件系统的布局</h3>
+<p>⽂件系统需要为需要存储的数据维护⼀个其在磁盘上的数据结构</p>
+<ul>
+<li>数据区域 (数据块): 磁盘保留的⼀个固定数据块部分⽤来存储数据本身</li>
+<li>inode 表：每个⽂件的元信息
+<ul>
+<li>⽂件对应哪些数据块、⽂件的⼤⼩，拥有者，时间戳，访问权限…</li>
+<li>⼀个数据块可以存储多个元信息（inodes），⼀个 4KB 的数据块可以包含 16 个 256 字节的 inode</li>
+<li>⼀个 inode 在哪个数据块存储是容易查询的</li>
+</ul>
+</li>
+<li>分配数据结构: 对于已分配和空闲的空间的信息 (空闲空间分配)
+<ul>
+<li>决定⼀个 inode 或⼀个数据块是否是空闲的</li>
+<li>有两个空闲数据结构（基于 bitmap），⼀个为了 inode，⼀个为了数据块</li>
+</ul>
+</li>
+<li>超级块（Superblock）: ⽂件系统本身的信息
+<ul>
+<li>⽂件系统的类型、inodes 数量、数据块数量、inode 表开始的块地址…</li>
+<li>当挂载⼀个⽂件系统时会读取超级块的信息</li>
+</ul>
+</li>
+<li>启动块：启动 OS 所需要的信息
+<ul>
+<li>⼀般来说是⼀个分区的第⼀个数据块 (没有 OS 的话为空)</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060839.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>⽂件系统还需要在内存中维护相应的数据结构⽤来⽅便的对磁盘数据进⾏访问 （⽤来反映和拓展磁盘中的结构）</p>
+<ul>
+<li>挂载表（Mount table）: 关于⽂件系统的挂载信息（挂载点、⽂件系统类型）</li>
+<li>打开⽂件表: 系统范围的和每个进程的</li>
+<li>⽬录结构：最近访问的⽬录信息</li>
+<li>I/O 内存缓冲: 读写磁盘时需要处理主存和磁盘之间速度差异的“缓冲带</li>
+</ul>
+<h3 id="文件组织">文件组织</h3>
+<p>文件需要磁盘给定相应的数据块进⾏存储，此外还需要有⼀些数据结构来反映该⽂件⽤的数据块在哪<br>
+很多种组织⽅式</p>
+<ul>
+<li>连续存储（Contiguous）</li>
+<li>链表（Linked List）</li>
+<li>⽂件分配表（File Allocation Table）</li>
+<li>索引式配置（Indexed Allocation）</li>
+</ul>
+<p><strong>连续分配</strong></p>
+<ul>
+<li>只有⽂件的第⼀个数据块的地址和需要的数据块总数需要记录</li>
+<li>线性的访问是⾼效的</li>
+<li>随机访问的数据地址也是容易计算的</li>
+</ul>
+<p>但不够灵活</p>
+<ul>
+<li>在⽂件创建时就需要知道⽂件的⼤⼩，之后如何增加和减少⽂件的⼤⼩也是麻烦</li>
+<li>有外部碎⽚：需要进⾏收缩操作（compaction）来减少这种碎⽚</li>
+</ul>
+<p><strong>基于链表的分配</strong><br>
+每个⽂件是⼀个数据块的链表</p>
+<ul>
+<li>每个数据块包含指向下⼀个块的指针</li>
+</ul>
+<p><img src="2025060852.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>文件分配表 File Allocation Table FAT</strong><br>
+⼀个基于链表分配的变种，其将所有的指针放到同⼀个表格中</p>
+<ul>
+<li>对于每个磁盘数据块都有⼀个 FAT 的项</li>
+<li>每个 FAT 项包含⼀个指向下⼀个 FAT 项的指针，或者⽂件终⽌符号</li>
+<li>对于随机访问的操作，只需要访问该 FAT 表即可，该表可以直接存储进主存从⽽减少需要 I/O 的次数</li>
+</ul>
+<p><img src="2025060816.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>索引式分配 Indexed Allocation</strong><br>
+<img src="2025060841-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>多级索引</strong><br>
+使⽤间接指针：可以将索引块中的指针指向⼀个由指针组成的数据块，其中每个指针再指向数据块</p>
+<ul>
+<li>⼀个索引块中可以赋予固定数量的直接指针 （指向数据块）和固定数量的间接指针</li>
+<li>此时索引的结构变成了⼀个树（⾮平衡）</li>
+<li>对于⼩⽂件和⼤⽂件都能很好⽀持</li>
+<li>⼀般有 2 级和 3 级的⾮间接指针</li>
+</ul>
+<p><img src="2025060878.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060879-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="目录组织">目录组织</h3>
+<p>⽬录提供了找到⽂件名和其在磁盘上的数据块的映射信息⟨ ⽂件名, ⽂件索引⟩</p>
+<ul>
+<li>当需要打开⼀个⽂件时，OS ⾸先找到路径名，并根据路径名找到磁盘上的⽬录项</li>
+<li>⽬录项提供了该⽂件对应的磁盘数据块，可以是
+<ul>
+<li>整个⽂件所在的磁盘地址</li>
+<li>第⼀个数据块的编号</li>
+<li>⽂件的元信息 inode 号</li>
+</ul>
+</li>
+</ul>
+<p>如果⽂件名的⻓度过于⻓？</p>
+<ul>
+<li>给⽂件名的⻓度设置⼀个上限，使其最多含有 N 个字符
+<ul>
+<li>每个⽂件的⽂件名项都是⼀个固定⼤⼩的字符数组</li>
+</ul>
+</li>
+<li>简单，但是问题是，不是每个⽂件名都很⻓
+<ul>
+<li>对于那些⼤部分拥有短的名字的⽂件，会造成⼤量的浪费</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060869-1.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060875.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>给定⽬录实现下的⽂件查找：</p>
+<ul>
+<li>如果⽬录存储的是 ⟨ file name, inode number ⟩ 的列表
+<ul>
+<li>从头到尾开始搜索列表中的项</li>
+<li>如果⽬录中的项很少没问题（对于现实中的⼤部分情况都很好），但如果⼀个⽬录中出现⼤量的项， 这个做法就很低效了</li>
+</ul>
+</li>
+<li>解决⽅案：增加⼀个额外的 hash 表 (以 filename 为 key)
+<ul>
+<li>使⽤链表来处理碰撞</li>
+<li>更快的查询，但也需要更为复杂的管理</li>
+</ul>
+</li>
+<li>此外，⽆论哪种⽅案，都可以利⽤ cache 来进⼀步加快搜索</li>
+</ul>
+<h3 id="空闲空间管理">空闲空间管理</h3>
+<p>如何管理空闲的 inode 块和数据块？</p>
+<ul>
+<li>每当⽂件和⽬录需要被创建的时候需要找到空闲的空间存储这些数据</li>
+<li>两种常⻅的管理结构：Bitmap（位图） 和空闲列表</li>
+<li>也有采⽤更复杂结构如 B 树</li>
+</ul>
+<p><strong>Bitmap</strong><br>
+<img src="2025060809-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>空闲列表</strong><br>
+<img src="2025060831.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>块大小</em><br>
+磁盘的块到底多⼤合适？</p>
+<ul>
+<li>过于⼤: 由于⼤部分都是⼩⽂件，磁盘会产⽣⼤量的浪费（内部碎⽚）</li>
+<li>过于⼩: 读⽂件时会产⽣⼤量的寻道和延迟 (每个⽂件都会包含⼤量的块)</li>
+</ul>
+<p>历史上⽂件系统基本都选择 1~4 KB 的块⼤⼩</p>
+<ul>
+<li>当磁盘超过 1TB（现在已经很普遍），块⼤⼩设置为 64 KB 更为合适</li>
+<li>磁盘空间如今已经很少会出现不⾜的状</li>
+</ul>
+<p><img src="2025060847.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>读文件</strong><br>
+假设⼀个⽂件系统被挂载，其中超级块在内存中, 但其他 (inodes, directories) 都在磁盘上<br>
+读⼀个⽂件⾸先需要打开这个⽂件：</p>
+<ul>
+<li>⾸先需要循着路径名找到相应的 inode</li>
+<li>读取这个 inode，做权限检验，合法就返回⽂件描述符（对应的操作会反映到打开⽂件表中）</li>
+</ul>
+<p>然后对每个发起的读操作：</p>
+<ul>
+<li>读相应的 inode</li>
+<li>读相应的数据块</li>
+<li>写 inode (更新上次访问时间)</li>
+<li>更新内存中打开⽂件表中的 offset</li>
+</ul>
+<p><img src="2025060882.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>写文件</strong><br>
+⾸先打开⽂件（过程与读⽂件类似）<br>
+但与读⽂件不⼀样的地⽅在于，写⽂件可能需要<em>分配⼀个新的数据块</em> (除⾮ 覆写旧数据块)</p>
+<ul>
+<li>读和写空闲数据块结构⽐如 bitmap (找到⼀个空闲的数据块标记为占有)</li>
+<li>读和写⽂件的 inode (更新 inode 表中这个新数据块的位置)</li>
+<li>写这个新的数据块</li>
+</ul>
+<p>当<em>创建⼀个⽂件</em>时需要更多的操作</p>
+<ul>
+<li>读和写空闲数据块结构⽐如 bitmap (找到⼀个空闲的数据块标记为占有)</li>
+<li>读和写⽂件的 inode (初始化)</li>
+<li>读和写⽬录的数据 (将⽂件名和其对应 inode 项写⼊)</li>
+<li>读和写⽬录的 inode (更新⽬录)</li>
+<li>如果⽬录需要增加容量来添加这个新的项，需要更多的 I/O (访问空闲数据结构，增加新的⽬录的数据块)</li>
+</ul>
+<p><img src="2025060855.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="文件系统性能">文件系统性能</h3>
+<p>⼀个⽂件系统如何减少 I/O 带来的开销?</p>
+<ul>
+<li>访问磁盘 (I/O 操作) ⽐访问主存慢得多</li>
+<li>Read-Modify-Write 过程
+<ul>
+<li>⼏乎所有的⽂件系统都将⽂件分割成固定⼤⼩的块</li>
+<li>将磁盘块复制到主存以访问其内容，并只有发⽣修改才将其写回</li>
+</ul>
+</li>
+</ul>
+<p><strong>缓存和缓冲（Caching and Buffering）</strong><br>
+显然⽆法将磁盘的所有块都放进内存，应该只放⼊需要频繁访问的块（类似缓存机制），这样就可以读取该块就可以极⼤的减少 I/O 的操作了</p>
+<ul>
+<li>利⽤哈希表来记录⼀个给定块是否在主存⾥</li>
+<li>如果 cache 满了就需要移除⼀些块 (类似⻚⾯替换机制，⽐如 LRU)</li>
+</ul>
+<p>现代系统将虚拟内存⻚和⽂件系统缓存⻚集成到统⼀的⻚缓存中</p>
+<ul>
+<li>这样，内存可以在虚拟内存和⽂件系统之间更灵活地分配</li>
+</ul>
+<p><em>预取</em>: 可以将需要的数据块提前存⼊缓存中来提⾼缓存击中率</p>
+<ul>
+<li>很多读⽂件操作是线性的，这时预取的效率很⾼</li>
+<li>但如果是随机访问，预取则⽆效</li>
+<li>因此可能会造成加载⽆⽤的数据块和替换需要⽤的数据块这样低效的操作</li>
+<li>⽂件系统可以追踪每个打开⽂件的访问形式</li>
+</ul>
+<p>读的 I/O 可以通过的充分的缓存来避免，但还是需要写磁盘的 I/O 来达成⽂件数据的持久性</p>
+<ul>
+<li><em>写缓冲</em>（Buffering）
+<ul>
+<li>可以延迟写操作：⽂件系统可以<em>批处理</em>⼀些 I/O 写的操作（避免多次频繁的少量的 I/O 的操作，⽐如可以合并 bitmap 的很多位运算）</li>
+<li>缓冲写操作，⽂件系统还可以合理的调度 I/O 来提⾼性能（⽐如让相近的数据块⼀并写⼊）</li>
+<li>有些写操作甚⾄可以完全避免 (创建了⼀个⽂件然后删除)</li>
+<li>但更好的性能也会带来潜在的不⼀致性：⼀旦发⽣ crash, <em>没有提交到磁盘的写操作会丢失</em>
+<ul>
+<li>⼀般每隔⼀段时间会写缓冲，时间间隔⼤⼩是⼀个 trade-off</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>快速文件系统 Fast File System FFS</strong><br>
+<img src="2025060873.png" srcset="/img/loading.gif" lazyload alt=""><br>
+在 FFS 中实现数据局部性（data locality）：将相关内容放在⼀起（将不相关内容分开）<br>
+对于⽂件：</p>
+<ul>
+<li>将数据块分配到与其 inode 相同的组中</li>
+<li>将同⼀⽬录中的所有⽂件放置在该⽬录所在的组中</li>
+</ul>
+<p>对于⽬录：</p>
+<ul>
+<li>找到已分配⽬录数量较少（以平衡各组间的⽬录）且空闲 inode 数量较多（以便能分配 ⼤量⽂件）的组。</li>
+<li>将⽬录数据和 inode 放在该组中</li>
+</ul>
+<h2 id="文件系统可靠性">文件系统可靠性</h2>
+<h3 id="一致性">一致性</h3>
+<p>崩溃⼀致性问题（Crash-consistency problem）：崩溃故障可以在任何时刻发⽣（例如，电源故障），⽂件系统可能会受到这种崩溃的影响</p>
+<ul>
+<li>对⽂件系统的更新操作需要多次 I/O 操作（更新多个数据结构）
+<ul>
+<li>崩溃时，某些操作可能完成，⽽某些操作可能丢失</li>
+</ul>
+</li>
+<li>这会导致⽂件系统处于不⼀致的状态</li>
+</ul>
+<p>当需要为⼀个⽂件增加⼀个数据时</p>
+<ul>
+<li>需要写⼀个新的数据块</li>
+<li>需要写这个⽂件的 inode</li>
+<li>需要写数据的 bitmap</li>
+</ul>
+<p><img src="2025060896-1.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060889.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>理想的方案：</p>
+<ul>
+<li>⼀个⽂件系统原⼦的从⼀个⼀致的状态进⼊另⼀个⼀致的状态</li>
+<li>但磁盘只能⽀持⼀个写操作是原⼦的（⽽两个状态之间的迁移往往涉及多个写操作）</li>
+</ul>
+<p>实际的⽅案</p>
+<ul>
+<li>进⾏⽂件⼀致性检查（File System Consistency Check, fsck）</li>
+<li>⽇志化</li>
+</ul>
+<h3 id="进行文件一致性检查">进行文件一致性检查</h3>
+<p>让不⼀致发⽣，并在事后修复（在重启期间）<br>
+<strong>fsck</strong>：在挂载⽂件系统之前运⾏（fsck 运⾏期间需要没有相关的⽂件系统活动），确保⽂件系统元数据在内部⼀致</p>
+<p>完整性检查超级块</p>
+<ul>
+<li>⽂件系统⼤⼩是否⼤于已分配的总块数？</li>
+<li>发现不⼀致时，使⽤超级块的另⼀份副本</li>
+</ul>
+<p>检查空闲块和位图的有效性</p>
+<ul>
+<li>扫描 inode 以确定哪些块已分配
+<ul>
+<li>⽣成数据位图的正确版本</li>
+<li>发现不⼀致时，覆盖位图（信任 inode）</li>
+</ul>
+</li>
+<li>进行类似的检查以更新 inode 位图</li>
+</ul>
+<p>检查 inode 是否未损坏</p>
+<ul>
+<li>例如，每个 inode 应该有⼀个有效的类型字段（普通⽂件、⽬录、符号链接等）</li>
+<li>如果问题⽆法修复，清除 inode 并更新 inode 位图</li>
+</ul>
+<p>检查 inode 链接</p>
+<ul>
+<li>扫描整个⽬录树，计算每个⽂件和⽬录的硬链接数</li>
+<li>发现不⼀致时，修正 inode 中的链接计数</li>
+<li>如果没有⽬录引⽤已分配的 inode，将其移动到名为 lost+found 的⽬录中</li>
+</ul>
+<p>检查重复的指针和损坏的块</p>
+<ul>
+<li>两个 inode 如果指向同⼀个数据块
+<ul>
+<li>清除⼀个 inode (如果其明显损坏), 或者复制那个数据块 (使的每个 inode 指向不同的数据块（内容拷⻉）)</li>
+</ul>
+</li>
+<li>如果⼀个 inode 指向分区外的数据块
+<ul>
+<li>直接移除这个 inode</li>
+</ul>
+</li>
+</ul>
+<p>检查⽬录</p>
+<ul>
+<li>检查 . 和 … 是否是第⼀和第⼆个项</li>
+<li>检查其中的每个 inode 所指向的地⽅是否已经被分配</li>
+</ul>
+<p><img src="2025060883-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="日志">日志</h3>
+<p>基本思路：预写⽇志（Write-ahead logging）或⽇志（Journaling），该思路借鉴⾃数据库系统</p>
+<ul>
+<li>在覆盖结构之前，先写⼀个⼩⽇志（存储在磁盘上），描述将要做的事情</li>
+<li>如果在更新过程中发⽣故障，我们可以在重启时读取⽇志并重试
+<ul>
+<li>在写⼊意图之前崩溃：没有操作</li>
+<li>在写⼊意图之后崩溃：重做该操作</li>
+</ul>
+</li>
+<li>在更新期间增加的⼀些⼯作量，可以⼤⼤减少恢复期间所需的⼯作量
+<ul>
+<li>⽆需扫描整个磁盘，只需要查看奔溃前的⽇志中的记录即可</li>
+</ul>
+</li>
+<li>被许多⽂件系统使⽤，包括 Linux 的 ext3、ext4 和 Windows 的 NTFS</li>
+</ul>
+<p>⽂件的更新被作为 <em>事务</em>（transaction）保存在⽇志中（⽇志写⼊）<br>
+<img src="2025060811.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>⼀旦事务安全地写⼊磁盘，将更新内容（元数据和数据）写⼊其最终的磁盘位置（checkpoint，检查点）</p>
+<ul>
+<li>将 I[v2]、B[v2] 和 Db 写⼊它们的磁盘位置</li>
+</ul>
+<p>问题：<br>
+<img src="2025060872.png" srcset="/img/loading.gif" lazyload alt=""><br>
+解决方案：<br>
+<img src="2025060837.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>当需要从崩溃中恢复时，⽂件系统会扫描⽇志并查找已提交到磁盘的事务：<br>
+如果在⽇志提交之前发⽣崩溃</p>
+<ul>
+<li>则忽略待处理的更新</li>
+</ul>
+<p>如果在⽇志提交之后但在检查点之前发⽣崩溃</p>
+<ul>
+<li>则按顺序重放已提交的事务（重做⽇志）</li>
+<li>可能会有些写冗余（因为有些⽇志可能已经正确写⼊，会被重新再写⼀ 次），但问题不⼤，因为崩溃发⽣不频繁</li>
+</ul>
+<p>⽇志在提交之后其实就不需要保留了<br>
+有限⽇志：将⽇志视为循环数据结构（bounded buffer），反复重⽤（circular log）</p>
+<ul>
+<li>⼀旦事务<em>被检查点记录</em>，释放它在⽇志中占⽤的空间</li>
+<li>⽤⼀个⽇志超级块记录哪些事务尚未被检查点记录</li>
+</ul>
+<p><img src="2025060886-4.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="日志结构文件系统">日志结构文件系统</h2>
+<p>当数据发⽣变化时，不必回去编辑原始数据，只需将新副本存储在末尾（类似磁带）。</p>
+<ul>
+<li>在最简单的情况下，假设容量⽆限</li>
+</ul>
+<p>日志⽂件系统（LFS） 仍然有 inode 和数据块，只是将它们放置⽅式不同。<br>
+总是写到末尾：例如，当写⼊⼀个⼩⽂件时<br>
+<img src="2025060876.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>⼀如既往，我们先写⼊数据块，然后再写⼊ inode，以最⼩化中断/崩溃的影响。<br>
+<img src="2025060839-1.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060840.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060859-1.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060873-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>指向新的版本</p>
+<ul>
+<li>旧数据仍然存在于磁盘上，但内存中的 i-map 和其磁盘上的持久副本不再引⽤它</li>
+<li>如果磁盘空间是⽆限的，那就⾜够了</li>
+<li>此外，如果我们保存旧版本的检查点区域，它还可以⽤来查看⽂件系统的旧快照
+<ul>
+<li>能够保留旧快照的⽂件系统被称为版本化⽂件系统（a versioning file system）</li>
+</ul>
+</li>
+</ul>
+<p>磁盘容量是有上限的</p>
+<ul>
+<li>受限于磁盘容量，不可能永远顺序写⼊， 不能⽆限期地保留旧版本的数据。</li>
+<li>最终需要对具有可⽤空间的段进⾏垃圾回收。
+<ul>
+<li>实际上，最好是释放整个段（如果都是垃圾）</li>
+<li>但如果遇到部分填充的段，那么可以先释放完整的段，并在⽇志末尾重新写⼊ ⼀个压缩版本的段（只写⼊垃圾收集器留下的“空洞”）</li>
+<li>垃圾收集器定期扫描磁盘，可能在空闲时进⾏</li>
+<li>但是垃圾收集器如何决定哪些块是活动的，哪些是⽆⽤的呢</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060822.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="总结">总结</h2>
+<p>两个关键抽象：⽂件和⽬录</p>
+<ul>
+<li>元数据信息：inode</li>
+<li>⽂件描述符 File Descriptor, 打开⽂件表</li>
+<li>软/硬链接</li>
+</ul>
+<p>⽂件实现：</p>
+<ul>
+<li>布局（超级块、空闲位图、inode 块、数据块）</li>
+<li>性能（FFS、缓存和缓冲）、⼀致性检查、⽇志</li>
+<li>⽇志结构⽂件系统</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">2025春-操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>操作系统-14持久化-文件系统</div>
+      <div>https://astronautbase.github.io/2025/08/25/操作系统-14持久化-文件系统/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-13%E6%8C%81%E4%B9%85%E5%8C%96-%E8%AE%BE%E5%A4%87%E7%AE%A1%E7%90%86/" title="操作系统-13持久化-设备管理">
+                        <span class="hidden-mobile">操作系统-13持久化-设备管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

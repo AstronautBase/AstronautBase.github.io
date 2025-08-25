@@ -1,0 +1,981 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="网络层作用 网络层服务  在发送主机和接收主机对之间传送段（segment） 在发送端将段封装到数据报中 在接收端，将段上交给传输层实体 网络层协议存在于每一个主机和路由器 路由器检查每一个经过它的 IP 数据报的头部  网络层的关键功能  转发：将分组从路由器的输入接口转发到合适的输出接口 路由：使用路由算法来决定分组从发送主机到目标接收主机的路径  路由选择算法 路由选择协议    类比：旅行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="互联网计算-04网络层：数据平面">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="网络层作用 网络层服务  在发送主机和接收主机对之间传送段（segment） 在发送端将段封装到数据报中 在接收端，将段上交给传输层实体 网络层协议存在于每一个主机和路由器 路由器检查每一个经过它的 IP 数据报的头部  网络层的关键功能  转发：将分组从路由器的输入接口转发到合适的输出接口 路由：使用路由算法来决定分组从发送主机到目标接收主机的路径  路由选择算法 路由选择协议    类比：旅行">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060323.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060462.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060425.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060447.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060444.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060497.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060440.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060436.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060470.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060467.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060460.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060443.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060427.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060472.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060422.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060407.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060487.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060454.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060448.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060438.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060476.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060491.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060484.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060480.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060451.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060491-1.png">
+<meta property="article:published_time" content="2025-08-25T08:36:05.000Z">
+<meta property="article:modified_time" content="2025-08-25T08:43:29.727Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="计算机基础">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-04%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%B9%B3%E9%9D%A2/2025060323.png">
+  
+  
+  
+  <title>互联网计算-04网络层：数据平面 - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="互联网计算-04网络层：数据平面"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 16:36" pubdate>
+          2025年8月25日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          19 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">互联网计算-04网络层：数据平面</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="网络层作用">网络层作用</h2>
+<p><strong>网络层服务</strong></p>
+<ul>
+<li>在发送主机和接收主机对之间传送<em>段（segment）</em></li>
+<li>在发送端将段封装到数据报中</li>
+<li>在接收端，将段上交给传输层实体</li>
+<li>网络层协议存在于<em>每一个</em>主机和路由器</li>
+<li>路由器检查每一个经过它的 IP 数据报的头部</li>
+</ul>
+<p><strong>网络层的关键功能</strong></p>
+<ul>
+<li>转发：将分组从路由器的输入接口转发到合适的输出接口</li>
+<li>路由：使用路由算法来决定分组从发送主机到目标接收主机的路径
+<ul>
+<li>路由选择算法</li>
+<li>路由选择协议</li>
+</ul>
+</li>
+</ul>
+<p>类比：旅行</p>
+<ul>
+<li>转发：通过单个路口的过程</li>
+<li>路由：从源到目的的路由路径规划过程</li>
+</ul>
+<p><strong>数据平面、控制平面</strong></p>
+<p>数据平面</p>
+<ul>
+<li>本地，每个路由器功能</li>
+<li>决定从路由器输入端口到达的分组如何转发到输出端口</li>
+<li>转发功能
+<ul>
+<li>传统方式：基于目标地址+转发表</li>
+<li>SDN 方式：基于多个字段+流表</li>
+</ul>
+</li>
+</ul>
+<p>控制平面</p>
+<ul>
+<li>网络范围内的逻辑</li>
+<li>决定数据报如何在路由器之间路由，决定数据报从源到目标主机之间的端到端路径</li>
+<li>2 个控制平面方法:
+<ul>
+<li>传统的路由算法: 在路由器中被实现</li>
+<li>software-defined networking (SDN): 在远程的服务器中实现</li>
+</ul>
+</li>
+</ul>
+<p><strong>网络服务模型</strong><br>
+Q：从发送方主机到接收方主机传输数据报的“通道” ，网络提供什么样的服务模型？</p>
+<p>对于单个数据报的服务:</p>
+<ul>
+<li>可靠传送</li>
+<li>延迟保证，如：少于 40ms 的延迟</li>
+</ul>
+<p>对于数据报流的服务:</p>
+<ul>
+<li>保序数据报传送</li>
+<li>保证流的最小带宽</li>
+<li>分组之间的延迟差</li>
+</ul>
+<h2 id="路由器">路由器</h2>
+<p>路由器结构概况</p>
+<ul>
+<li>运行路由选择算法/协议</li>
+<li>从输入到输出链路交换数据报</li>
+</ul>
+<p><img src="2025060323.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>输入端口</em><br>
+<img src="2025060462.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><strong>最长前缀匹配</strong><br>
+当给定目标地址查找转发表时，采用<strong>最长</strong>地址前缀匹配的目标地址表项</p>
+<p>高效查找匹配：</p>
+<ul>
+<li>利用 二进制串 的 树状结构<br>
+<img src="2025060425.png" srcset="/img/loading.gif" lazyload alt=""></li>
+</ul>
+<p><strong>交换结构</strong></p>
+<ul>
+<li>将分组从输入缓冲区传输到合适的输出端口</li>
+<li>交换速率：分组可以按照该速率从输入传输到输出
+<ul>
+<li>运行速度经常是输入/输出链路速率的若干倍</li>
+<li>N 个输入端口：交换机构的交换速度是输入线路速度的 N 倍比较理想，才不会成为瓶颈</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060447.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>通过内存交换</em></p>
+<p>第一代路由器:</p>
+<ul>
+<li>在 CPU 直接控制下的交换，采用传统的计算机</li>
+<li>分组被拷贝到系统内存，CPU 从分组的头部提取出目标地址，查找转发表，找到对应的输出端口，拷贝到输出端口</li>
+<li>转发速率被内存的带宽限制 (数据报通过 BUS 两遍)</li>
+<li>一次只能转发一个分组</li>
+</ul>
+<p><em>通过总线交换</em></p>
+<ul>
+<li>数据报通过共享总线，从输入端口转发到输出端口</li>
+<li>总线竞争: 交换速度受限于总线带宽</li>
+<li>1 次处理一个分组</li>
+</ul>
+<p><em>通过 Mesh 交换</em></p>
+<ul>
+<li>同时并发转发多个分组，克服总线带宽限制</li>
+<li>Banyan（榕树）网络，crossbar (纵横) 和其它的互联网络被开发，将多个处理器连接成多处理器</li>
+<li>当分组从端口 A 到达，转给端口 Y；控制器短接相应的两个总线</li>
+<li>高级设计：将数据报分片为固定长度的信元，通过交换网络交换</li>
+</ul>
+<p><strong>输出端口</strong></p>
+<p>功能</p>
+<ul>
+<li>Packet classification</li>
+<li>Buffer management</li>
+<li>Scheduler
+<ul>
+<li>Chooses among queued packets for transmission</li>
+<li>Select packets to drop when buffer saturates</li>
+</ul>
+</li>
+</ul>
+<p>数据报分类：</p>
+<p><img src="2025060444.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>输入端口排队</em></p>
+<ul>
+<li>当交换机构的速率小于输入端口的汇聚速率时， 在输入端口可能要排队
+<ul>
+<li>排队延迟以及由于输入缓存溢出造成丢失</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060497.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>输出端口排队</em><br>
+当数据报从交换机构的到达速度比传输速率快就需要输出端口缓存</p>
+<ul>
+<li>数据报（分组）可能会被丢弃， 由于拥塞，缓冲区没有空间</li>
+</ul>
+<p>由调度规则选择排队的数据报进行传输</p>
+<ul>
+<li>优先权调度-谁会获得最优性能， 网络中立</li>
+</ul>
+<p>当多个输入端口同时向输出端口发送时，缓冲该分组（当通过交换网络到达的速率超过输出速率则缓存）</p>
+<p>排队带来延迟，由于输出端口缓存溢出则丢弃数据报！</p>
+<p>需要多少缓存<br>
+<img src="2025060440.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>丢弃策略：如果分组到达一个满的队列，哪个分组将会被抛弃</p>
+<ul>
+<li>tail drop: 丢弃刚到达的分组</li>
+<li>priority: 根据优先权丢失/移除分组</li>
+<li>random: 随机地丢弃/移除</li>
+</ul>
+<p><strong>调度策略</strong></p>
+<p><em>FIFO</em><br>
+First In First Out：按照分组到来的次序发送</p>
+<p><em>优先权</em><br>
+发送最高优先权的分组<br>
+多类，不同类别有不同的优先权</p>
+<ul>
+<li>类别可能依赖于标记或者其他的头部字段</li>
+</ul>
+<p><em>Round Robin (RR)</em></p>
+<ul>
+<li>多类</li>
+<li>循环扫描不同类型的队列, 发送完一类的一个分组 ，再发送下一个类的一个分组，循环所有类</li>
+</ul>
+<p><em>Weighted Fair Queuing (WFQ)</em><br>
+<img src="2025060436.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="IP-Packet-Structure">IP Packet Structure</h2>
+<p><img src="2025060470.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060467.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="IP-Addressing">IP Addressing</h2>
+<p>IP 地址：32 位标示，对主机或者路由器的接口编址<br>
+接口: 主机/路由器和物理链路的连接处</p>
+<ul>
+<li>路由器通常拥有多个接口</li>
+<li>主机也有可能有多个接口</li>
+<li>IP 地址和每一个接口关联</li>
+</ul>
+<p>-&gt; 一个 IP 地址和一个接口相关联<br>
+<em>IP 地址分类</em></p>
+<p><img src="2025060460.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="子网">子网</h3>
+<p>一个子网内的节点（主机或者路由器）它们的 IP 地址的<em>高位</em>部分相同 ，这些节点构成的网络的一部分叫做子网<br>
+无需路由器介入，子网内各主机可以在物理上相互直接到达</p>
+<p><strong>内网 IP 地址</strong></p>
+<ul>
+<li>专用地址：地址空间的一部份供专用地址使用</li>
+<li>永远不会被当做公用地址来分配, 不会与公用地址重复
+<ul>
+<li>只在局部网络中有意义，区分不同的设备</li>
+</ul>
+</li>
+<li>路由器不对目标地址是专用地址的分组进行转发</li>
+</ul>
+<p><strong>CIDR</strong></p>
+<p>Classless InterDomain Routing （无类域间路由）</p>
+<ul>
+<li>子网部分可以在任意的位置</li>
+<li>地址格式: a.b.c.d/x, 其中 x 是地址中<em>子网号的长度</em><br>
+<img src="2025060443.png" srcset="/img/loading.gif" lazyload alt=""></li>
+</ul>
+<p>主机如何获得 IP 地址</p>
+<ul>
+<li>系统管理员将地址配置在一个文件中</li>
+<li>DHCP: Dynamic Host Configuration Protocol
+<ul>
+<li>从服务器中动态获得一个 IP 地址</li>
+</ul>
+</li>
+</ul>
+<h3 id="DHCP">DHCP</h3>
+<p>目标：允许主机在加入网络的时候，动态地从服务器那里获得 IP 地址</p>
+<ul>
+<li>可以更新对主机在用 IP 地址的租用期-租期快到了</li>
+<li>重新启动时，允许重新使用以前用过的 IP 地址</li>
+<li>支持移动用户加入到该网络（短期在网）</li>
+</ul>
+<p>DHCP 工作概况:</p>
+<ul>
+<li>主机广播“DHCP discover” 报文[可选]</li>
+<li>DHCP 服务器用 “DHCP offer”提供报文响应[可选]</li>
+<li>主机请求 IP 地址：发送 “DHCP request” 报文</li>
+<li>DHCP 服务器发送地址：“DHCP ack” 报文</li>
+</ul>
+<p><img src="2025060427.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060472.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>DHCP 返回:</p>
+<ul>
+<li>IP 地址</li>
+<li>第一跳路由器的 IP 地址（默认<em>网关</em>）</li>
+<li><em>DNS 服务器</em>的域名和 IP 地址</li>
+<li><em>子网掩码</em> (指示地址部分的网络号和主机号)</li>
+</ul>
+<p><img src="2025060422.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<ul>
+<li>DHCP 服务器生成 DHCP ACK， 包含客户端的 IP 地址，第一跳路由器的 IP 地址和 DNS 域名服务器的 IP 地址</li>
+<li>DHCP 服务器封装的报文所在的帧转发到客户端，在客户端解封装成 DHCP 报文</li>
+<li>客户端知道它自己的 IP 地址，DNS 服务器的名字和 IP 地址，第一跳路由器的 IP 地址</li>
+</ul>
+<h2 id="NAT-Network-Address-Translation">NAT: Network Address Translation</h2>
+<p><img src="2025060407.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="2025060487.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="IPv6">IPv6</h2>
+<p>初始动机: 32-bit 地址空间将会被很快用完</p>
+<p>另外的动机:</p>
+<ul>
+<li>头部格式改变帮助加速处理和转发
+<ul>
+<li>TTL-1</li>
+<li>头部 checksum</li>
+<li>分片</li>
+</ul>
+</li>
+<li>头部格式改变帮助 QoS</li>
+</ul>
+<p>IPv6 数据报格式:</p>
+<ul>
+<li>固定的 40 字节头部</li>
+<li>数据报传输过程中，不允许分片</li>
+</ul>
+<p><img src="2025060454.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>和 IPv4 的其它变化</p>
+<ul>
+<li>Checksum: 被移除掉，降低在每一段中的处理速度</li>
+<li>Options: 允许，但是在头部之外, 被 “Next Header” 字段标示</li>
+<li>ICMPv6: ICMP 的新版本
+<ul>
+<li>附加了报文类型, e.g. “Packet Too Big”</li>
+<li>多播组管理功能</li>
+</ul>
+</li>
+</ul>
+<p><em>从 IPv4 到 IPv6 的平移</em></p>
+<p>两种方案：</p>
+<ul>
+<li>Dual Stack：两种格式相互转化</li>
+<li>隧道：在 IPv4 路由器之间传输的 IPv4 数据报中携带 IPv6 数据报</li>
+</ul>
+<p><img src="2025060448.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="通用转发和-SDN">通用转发和 SDN</h2>
+<p>通用转发：匹配+动作<br>
+<img src="2025060438.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<strong>流表抽象</strong><br>
+泛化转发：简单的数据包处理规则</p>
+<ul>
+<li>匹配：数据包头部字段中的模式值</li>
+<li>动作：对于匹配的数据包：丢弃、转发、修改、匹配的数据包或将匹配的数据包发送到控制器</li>
+<li>优先级：消除重叠模式</li>
+<li>计数器：字节数和包数</li>
+</ul>
+<p><img src="2025060476.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><em>OpenFlow</em></p>
+<p>flow table entries:<br>
+<img src="2025060491.png" srcset="/img/loading.gif" lazyload alt=""><br>
+抽象：<br>
+匹配+动作：抽象统一不同类型的设备<br>
+<img src="2025060484.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060480.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="Middleboxes">Middleboxes</h2>
+<p><img src="2025060451.png" srcset="/img/loading.gif" lazyload alt=""><br>
+<img src="2025060491-1.png" srcset="/img/loading.gif" lazyload alt=""></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97/" class="category-chain-item">2025春-互联网计算</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/" class="print-no-link">#计算机基础</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>互联网计算-04网络层：数据平面</div>
+      <div>https://astronautbase.github.io/2025/08/25/互联网计算-04网络层：数据平面/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E4%BA%92%E8%81%94%E7%BD%91%E8%AE%A1%E7%AE%97-05%E7%BD%91%E7%BB%9C%E5%B1%82%EF%BC%9A%E6%8E%A7%E5%88%B6%E5%B9%B3%E9%9D%A2/" title="互联网计算-05网络层：控制平面">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">互联网计算-05网络层：控制平面</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/15/C-%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1-all-%E9%87%8D%E7%82%B9/" title="C++高级程序设计-all-重点">
+                        <span class="hidden-mobile">C++高级程序设计-all-重点</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

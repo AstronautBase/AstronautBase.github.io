@@ -1,0 +1,863 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/my_avatar.png">
+  <link rel="icon" href="/img/my_avatar.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#517692">
+  <meta name="author" content="Astronaut">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="原子性和顺序性 bug 并发控制机制的前提是正确使用  原⼦性违背 (Atomicity Violation, AV)  ⽐如忘记上锁   顺序性违背 (Order Violation, OV)  忘记同步，或者同步条件写错    死锁 死锁类型 A-A 型死锁  ⼀个线程在已经持有⼀把锁的情况下再次尝试获得这把锁  ABBA 型死锁  线程 1 拿到了锁 A，需要锁 B，线程 2 拿到了锁 B，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统-08并发-并发bugs">
+<meta property="og:url" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-08%E5%B9%B6%E5%8F%91-%E5%B9%B6%E5%8F%91bugs/index.html">
+<meta property="og:site_name" content="Astronaut&#39;s Blog">
+<meta property="og:description" content="原子性和顺序性 bug 并发控制机制的前提是正确使用  原⼦性违背 (Atomicity Violation, AV)  ⽐如忘记上锁   顺序性违背 (Order Violation, OV)  忘记同步，或者同步条件写错    死锁 死锁类型 A-A 型死锁  ⼀个线程在已经持有⼀把锁的情况下再次尝试获得这把锁  ABBA 型死锁  线程 1 拿到了锁 A，需要锁 B，线程 2 拿到了锁 B，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-08%E5%B9%B6%E5%8F%91-%E5%B9%B6%E5%8F%91bugs/2025060770.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-08%E5%B9%B6%E5%8F%91-%E5%B9%B6%E5%8F%91bugs/2025060743.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-08%E5%B9%B6%E5%8F%91-%E5%B9%B6%E5%8F%91bugs/2025060712.png">
+<meta property="og:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-08%E5%B9%B6%E5%8F%91-%E5%B9%B6%E5%8F%91bugs/2025060795.png">
+<meta property="article:published_time" content="2025-08-25T12:22:20.000Z">
+<meta property="article:modified_time" content="2025-08-25T12:24:28.635Z">
+<meta property="article:author" content="Astronaut">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://astronautbase.github.io/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-08%E5%B9%B6%E5%8F%91-%E5%B9%B6%E5%8F%91bugs/2025060770.png">
+  
+  
+  
+  <title>操作系统-08并发-并发bugs - Astronaut&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"astronautbase.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Astronaut&#39;s Blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="操作系统-08并发-并发bugs"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-25 20:22" pubdate>
+          2025年8月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          18 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">操作系统-08并发-并发bugs</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="原子性和顺序性-bug">原子性和顺序性 bug</h2>
+<p>并发控制机制的前提是正确使用</p>
+<ul>
+<li>原⼦性违背 (Atomicity Violation, AV)
+<ul>
+<li>⽐如忘记上锁</li>
+</ul>
+</li>
+<li>顺序性违背 (Order Violation, OV)
+<ul>
+<li>忘记同步，或者同步条件写错</li>
+</ul>
+</li>
+</ul>
+<h2 id="死锁">死锁</h2>
+<h3 id="死锁类型">死锁类型</h3>
+<p><strong>A-A 型死锁</strong></p>
+<ul>
+<li>⼀个线程在已经持有⼀把锁的情况下再次尝试获得这把锁</li>
+</ul>
+<p><strong>ABBA 型死锁</strong></p>
+<ul>
+<li>线程 1 拿到了锁 A，需要锁 B，线程 2 拿到了锁 B，需要锁 A，这时两个线程都⽆法⾏进</li>
+</ul>
+<h3 id="死锁产生的必要条件">死锁产生的必要条件</h3>
+<ul>
+<li>所需要的资源是互斥的
+<ul>
+<li>互斥也可改为资源有限（Bounded resources），即能够共享的线程数有限</li>
+</ul>
+</li>
+<li>持有某个资源并等待更多资源</li>
+<li>不可直接“抢”别人持有的资源，只有等待有的人主动释放</li>
+<li>形成循环等待的环</li>
+</ul>
+<p>处理死锁</p>
+<ul>
+<li>忽略问题：在问题的发⽣频率很低且发⽣后代价很⼩（重启⼤法）直接忽略 (Ostrich Algorithm).</li>
+<li>从源头避免死锁发生</li>
+<li>检测并恢复</li>
+</ul>
+<h3 id="死锁避免：必要条件的破坏">死锁避免：必要条件的破坏</h3>
+<p>互斥的破坏：不太容易</p>
+<p>持有并等待的破坏：</p>
+<ul>
+<li>要么能⼀次得到所有锁，要么什么锁也不获取
+<ul>
+<li>不现实，因为这需要线程提前就知道需要哪些锁，如果是后⾯系统根据需要才新建⼀些锁，那么其难以提前获知</li>
+<li>此外，这也减少了⼀些并发度，因为如果程序很⻓时间运⾏中其实不太需要某些锁（只有在中间某段很短的时间内才需要某个锁），那么 ⼀开始就持有这把锁会限制其他线程得到这把锁并运行</li>
+</ul>
+</li>
+<li>如果此刻⽆法获得想要的锁，就释放其所有持有的锁
+<ul>
+<li>但如果锁是被封装在某个地⽅（不是显式地调⽤ lock 所得），便很难察觉需要释放这个锁</li>
+</ul>
+</li>
+</ul>
+<p>非抢占性的破坏</p>
+<ul>
+<li>允许系统直接去“抢”别的线程所持有的资源</li>
+<li>问题是不是每种资源都可以直接“抢”的
+<ul>
+<li>⼀个合理的“抢”需要被抢⾛资源的线程能够恢复到被抢前的状态</li>
+</ul>
+</li>
+</ul>
+<p>环形等待条件的破坏</p>
+<ul>
+<li>强制在锁在申请时按照规定的顺序来（Lock ordering）</li>
+</ul>
+<p><em>为什么按照⼀个全局的顺序就不会产⽣死锁？</em><br>
+<img src="2025060770.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="死锁避免：避免陷入不可挽回状态">死锁避免：避免陷入不可挽回状态</h3>
+<p>假设我们能够知道每个线程在其整个执⾏期间（⽽不是具体到哪个指令段）需要哪些互斥资源</p>
+<ul>
+<li>更⼀般的，假设资源数不只为 1（信号量），我们假设能够知道每个线程在其执⾏期间<em>需要哪些互斥资源的最⼤数量</em>, 即每个线程有⼀个最⼤需求向量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">M_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>所有线程的最⼤需求向量形成⼀个<em>最⼤需求矩阵</em> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span><br>
+此外相应的，我们也可以刻画当前系统状态的互斥资源的线程持有状态</li>
+<li>每个线程 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 有⼀个当前持有资源 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">C_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> , 所有线程的<em>当前持有资源为矩阵</em> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span></span></span></li>
+</ul>
+<p>系统初始每个<em>资源数向量</em> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi></mrow><annotation encoding="application/x-tex">E</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">E</span></span></span></span></p>
+<p>系统的行进伴随着线程对互斥资源的申请和释放，释放资源是平凡的事件，因为释放资源不会让系统进入“不可挽回状态”，但申请资源会</p>
+<ul>
+<li>每个线程 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 有一个当前<em>资源申请向量</em> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">R_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0077em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> ，所有线程的当前申请资源为矩阵 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span></span></span></span></li>
+</ul>
+<p>什么样的资源申请矩阵会导致系统进入“不可挽回状态”？</p>
+<ul>
+<li>如果接受了这个申请，导致⽆法满⾜未来的“最⼤”申请，即不可挽回
+<ul>
+<li>即⽬前虽然没有死锁，可以满⾜，但既定的未来不可满⾜</li>
+<li>这个“不可挽回”状态也有⼈称为“不安全”状态</li>
+</ul>
+</li>
+</ul>
+<p>正确的决策：如果当前申请矩阵会导致系统进⼊“不可挽回”状态，拒绝，否则接受申请，更新系统状态<br>
+——<strong>银行家算法</strong></p>
+<ol>
+<li>找⼀个线程 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> ，看看其<em>未来还需要的最⼤资源数</em>（最⼤资源需求数-⽬前持有资源数）是否能够被⽬前系统<em>尚存的资源数所满⾜</em>（系统初始资源数-被所有线程所持有的资源数），如果所有线程都不能被满⾜，就是⼀个“不可挽回”的不安全状态，最终会进⼊死锁状态</li>
+<li>对满⾜需求的线程 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> ，标记其为<em>未来可满⾜状态</em>，即其可以在⽬前状态下<em>存在 ⼀个分配⽅式</em>（⽴即全部分配其所有资源）终⽌. 那么也就存在这样的⼀个好的局⾯： 我们可以将其资源都回收</li>
+<li>在步骤 2 的更好的局⾯上，重复之前的步骤，⼀直到所有线程都可以终⽌，那么该系统状态就是“可挽回”的状态，否则就是“不可挽回”</li>
+</ol>
+<p>然而，这个算法是不实用的</p>
+<ul>
+<li>我们⼀般没法知道“最⼤”需求矩阵</li>
+<li>系统的资源是动态变化的
+<ul>
+<li>线程数会变化</li>
+<li>资源数可能会变化（线程可以⾃⼰释放所持有的锁）</li>
+</ul>
+</li>
+</ul>
+<h3 id="死锁的检测并处理：让他发生吧">死锁的检测并处理：让他发生吧</h3>
+<p>如何检测出现了死锁？</p>
+<ul>
+<li>死锁是由于多个线程形成⼀个等待环，⼀个线程的⾏进需要环内的另外⼀个线程所持有的锁，从⽽所有线程都⽆法⾏进</li>
+<li>因此，核⼼就是检测锁申请环</li>
+</ul>
+<p><strong>死锁的动态检测</strong><br>
+如何检测环？</p>
+<ul>
+<li>锁的持有和申请就是一个有向图</li>
+<li>有向图的环检测
+<ul>
+<li>深度优先，出现回边</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060743.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>如果是一类的互斥资源有多个资源数呢？单纯的环已不足来检测死锁<br>
+<img src="2025060712.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h2 id="并发-bugs-的动态分析方法">并发 bugs 的动态分析方法</h2>
+<p>什么是动态分析</p>
+<ul>
+<li>给定⼀次状态机（程序）的执⾏历史信息 （⽐如⽇志 log、covering lines、 memory access…）
+<ul>
+<li>当然这种记录往往需要额外的运⾏成本（⽐如插桩）</li>
+</ul>
+</li>
+<li>动态分析即为根据这个信息的分析函数 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>τ</mi><mo stretchy="false">)</mo><mo>:</mo><mi>τ</mi><mo>→</mo><mo stretchy="false">{</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">f(\tau):\tau \rightarrow\{0,1\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">}</span></span></span></span> , 0 代表关⼼问题的答案为否（⽐如没有 bug），1 代表关⼼问题的答案为是（⽐如有 bug），当然答案还可以有更多可能，那么这个值域会增⼤</li>
+</ul>
+<p>AddressSanitizer: 非法内存访问</p>
+<ul>
+<li>通过编译器⾃动插⼊和内存相关的断⾔（⽐如每次分配内存时，额外分配⼀写不可写的内存（投毒），⼀旦访问到这些被投毒的内存，就知道越界了），实现代码正确性的检查。</li>
+</ul>
+<p>ThreadSanitizer: 运行时的竞态条件检测</p>
+<ul>
+<li>回顾竞态条件 (数据竞争)：不同的线程同时访问同⼀内存，且⾄少有⼀个是写
+<ul>
+<li>基于这个定义，就能动态的检测出竞态条件</li>
+<li>这些条件中，不同线程是容易观察到的（记录 thread id 即可）， 同⼀内存也是容易观察到的（内存的地址），⾄少⼀个是写是容易观察到的（load 和 store 指令）</li>
+<li>关键问题是，什么是同时？ happens-before 关系！
+<ul>
+<li>让我们问⼀个反向的问题：什么不是同时</li>
+<li>happens-before 关系</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="2025060795.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>Canary</p>
+<ul>
+<li>&quot;牺牲” 内存单元，预警 memory error</li>
+</ul>
+<p>低配版 lockdep：</p>
+<ul>
+<li>统计当前的 spin count</li>
+<li>如果超过某个明显不正常的数值 (e.g., 100,000,000) 就报告
+<ul>
+<li>来代替你对于当前系统发⽣死锁直觉</li>
+</ul>
+</li>
+</ul>
+<p>低配版 AddressSanitizer</p>
+<ul>
+<li>实验 L1 内存分配器的 specification</li>
+</ul>
+<p>低配版 ThreadSanitizer</p>
+<ul>
+<li>竞态条件会产⽣什么后果？
+<ul>
+<li>线程的读写⼀个共享数据不是原⼦的，即在中间可能被其他线程插⼊
+<ul>
+<li>但是这个错误⼀般很难观测，因为指令的读写太快了</li>
+</ul>
+</li>
+<li>想法：通过拖慢线程读写速度，放⼤原⼦性破坏的可能性（执⾏时间越⻓，被其他线程⼲涉的可能性越⼤）</li>
+</ul>
+</li>
+</ul>
+<p><em>低配版的意义</em></p>
+<ul>
+<li>给定⼀个程序正确运⾏的 specification，原则上我们能够写出动态分析的⽅法验证程序运⾏时有没有破坏这个 specification</li>
+<li>但有时候验证⼀个完整的 specification 过于复杂或者条件不允许（⽐如我们的实验，⽐如计算资源受限）</li>
+<li>但此时如果能够从这个 full specification 推出⼀些弱化的 specification，从⽽更加容易的实现⼀些 Sanitizer，那么即使精度可能没那么⾼，但实际中会有很好的效果！</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>即使已经学了很多并发控制的⼯具，⼈类依然会犯错<br>
+死锁就是其中⼀⼤类</p>
+<ul>
+<li>死锁可以通过破坏其必要条件来避免</li>
+<li>也可以通过动态的合理分配来避免</li>
+<li>也可以通过动态分析来检测</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/2025%E6%98%A5-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" class="category-chain-item">2025春-操作系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>操作系统-08并发-并发bugs</div>
+      <div>https://astronautbase.github.io/2025/08/25/操作系统-08并发-并发bugs/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Astronaut</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-09%E8%99%9A%E6%8B%9F%E5%8C%96-%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/" title="操作系统-09虚拟化-进程管理">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">操作系统-09虚拟化-进程管理</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/25/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-07%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5-%E8%BF%9B%E9%98%B6/" title="操作系统-07并发-同步(进阶)">
+                        <span class="hidden-mobile">操作系统-07并发-同步(进阶)</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
